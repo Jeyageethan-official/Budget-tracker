@@ -549,31 +549,6 @@ body.modal-open {
     </style>
 </head>
 <body>
-    <!-- Example Modal -->
-<div id="myModal" style="display:none; position:fixed; top:20%; left:10%; background:white; padding:20px; z-index:1000;">
-    <p>This is the modal box</p>
-  </div>
-  
-  <button id="openModalBtn">Open Modal</button>
-  
-  <script>
-    const modal = document.getElementById("myModal");
-    const openBtn = document.getElementById("openModalBtn");
-  
-    // Show modal
-    openBtn.onclick = function () {
-      modal.style.display = "block";
-    };
-  
-    // Close when clicking outside the modal
-    window.addEventListener("click", function (event) {
-      if (modal.style.display === "block" && !modal.contains(event.target) && event.target !== openBtn) {
-        modal.style.display = "none";
-      }
-    });
-  </script>
-  
-
     
     
     <div class="floating-action-wrapper">
@@ -1343,9 +1318,6 @@ window.addEventListener("click", function(event) {
   if (modal && modal.style.display === "block" && !modal.contains(event.target)) {
     modal.style.display = "none";
   }
-});
-document.getElementById("openModalBtn").addEventListener("click", function() {
-  document.getElementById("myModal").style.display = "block";
 });
 
 
