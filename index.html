@@ -1165,6 +1165,19 @@ function updateQuickStats() {
             // Update transactions list
             updateTransactionsList();
             localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+
+            transactionList.innerHTML += `
+  <div class="transaction-item">
+    <div class="transaction-description">${transaction.description}</div>
+    <div class="transaction-info">
+      <span class="${amountClass}">${sign}${Math.abs(transaction.amount)}</span>
+      <span>${transaction.date}</span>
+    </div>
+  </div>
+`;
+
+
+            
             
 
         }
@@ -1245,6 +1258,20 @@ function updateQuickStats() {
         transactions: grouped[date].sort((a, b) => new Date(b.time) - new Date(a.time))
     }));
 }
+transactions.forEach((transaction, index) => {
+  const sign = transaction.amount < 0 ? "-" : "+";
+  const amountClass = transaction.amount < 0 ? "expense" : "income";
+
+  transactionList.innerHTML += `
+    <div class="transaction-item" data-index="${index}">
+      <div class="transaction-description">${transaction.description}</div>
+      <div class="transaction-info">
+        <span class="${amountClass}">${sign}${Math.abs(transaction.amount)}</span>
+        <span>${transaction.date}</span>
+      </div>
+    </div>
+  `;
+});
 
             
         
@@ -1462,26 +1489,26 @@ function enableSwipeToDelete() {
   items.forEach((item, index) => {
     let startX = 0;
     let currentX = 0;
+    let diffX = 0;
     let threshold = 60;
-    let deleted = false;
+    let isSwiping = false;
 
     item.addEventListener('touchstart', (e) => {
       startX = e.touches[0].clientX;
+      isSwiping = true;
     });
 
     item.addEventListener('touchmove', (e) => {
+      if (!isSwiping) return;
       currentX = e.touches[0].clientX;
-      let diff = currentX - startX;
-
-      if (diff < -10) {
-        item.style.transform = `translateX(${diff}px)`;
+      diffX = currentX - startX;
+      if (diffX < 0) {
+        item.style.transform = `translateX(${diffX}px)`;
       }
     });
 
     item.addEventListener('touchend', () => {
-      let diff = currentX - startX;
-
-      if (diff < -threshold) {
+      if (diffX < -threshold) {
         item.classList.add('swiped');
         setTimeout(() => {
           transactions.splice(index, 1);
@@ -1490,11 +1517,14 @@ function enableSwipeToDelete() {
       } else {
         item.style.transform = 'translateX(0)';
       }
+      isSwiping = false;
     });
   });
 }
 
-enableSwipeToDelete();
+
+enableSwipeToReveal();
+
 
     </script>
     
