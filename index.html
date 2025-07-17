@@ -619,25 +619,25 @@ body.modal-open {
   to { transform: translateY(0); }
 }
 
+/* Simple hover and press color for keypad buttons */
 .numpad-row button {
-  flex: 1;
-  padding: 15px;
-  font-size: 18px;
-  border: none;
   background: #111;
   color: white;
-  border-radius: 10px;
-  transition: background 0.2s ease, transform 0.2s ease;
+  border: none;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
 }
 
+/* Hover color */
 .numpad-row button:hover {
-  background: #333;
-  transform: scale(1.05);
+  background-color: #333;
 }
 
+/* When pressed */
 .numpad-row button:active {
-  background: #555;
-  transform: scale(0.97);
+  background-color: #555;
 }
 
 
