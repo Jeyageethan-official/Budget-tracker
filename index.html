@@ -985,36 +985,8 @@ function updateQuickStats() {
 
         // Add quick expense
         function addQuickExpense() {
-            const amount = parseFloat(document.getElementById('quickExpenseAmount').value);
-            const description = document.getElementById('quickExpenseDesc').value;
-
-            if (!amount || !description) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            const transaction = {
-                id: Date.now(),
-                description: description,
-                amount: amount,
-                category: 'Other',
-                type: 'expense',
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString()
-            };
-
-            transactions.push(transaction);
-            
-            document.getElementById('quickExpenseAmount').value = '';
-            document.getElementById('quickExpenseDesc').value = '';
-            closeModal('quickExpenseModal');
-            updateDisplay();
-        }
-
-        // Add quick income
-        function addQuickIncome() {
-    let amount = parseFloat(document.getElementById('quickIncomeAmount').value);
-    const description = document.getElementById('quickIncomeDesc').value;
+    const amount = parseFloat(document.getElementById('quickExpenseAmount').value);
+    const description = document.getElementById('quickExpenseDesc').value;
 
     if (!amount || !description) {
         alert('Please fill in all fields');
@@ -1025,22 +997,55 @@ function updateQuickStats() {
     const date = now.toISOString().split('T')[0];
     const time = now.toLocaleTimeString();
 
-    transactions.push({
-        id: Date.now(),
-        description,
-        amount,
-        category: 'Other',
-        type: 'income',
-        date,
-        time
-    });
+    const remaining = dailyBudget - transactions
+        .filter(t => t.type === 'expense' && t.date === date)
+        .reduce((sum, t) => sum + t.amount, 0);
 
-    document.getElementById('quickIncomeAmount').value = '';
-    document.getElementById('quickIncomeDesc').value = '';
-    closeModal('quickIncomeModal');
+    if (amount <= remaining) {
+        // All within budget
+        transactions.push({
+            id: Date.now(),
+            description: description + ' (within budget)',
+            amount,
+            category: 'Other',
+            type: 'expense',
+            date,
+            time
+        });
+    } else {
+        // Split transaction
+        const firstPart = remaining > 0 ? remaining : 0;
+        const secondPart = amount - firstPart;
+
+        if (firstPart > 0) {
+            transactions.push({
+                id: Date.now(),
+                description: description + ' (within budget)',
+                amount: firstPart,
+                category: 'Other',
+                type: 'expense',
+                date,
+                time
+            });
+        }
+
+        transactions.push({
+            id: Date.now() + 1,
+            description: description + ' (over budget)',
+            amount: secondPart,
+            category: 'Other',
+            type: 'expense',
+            date,
+            time
+        });
+    }
+
+    document.getElementById('quickExpenseAmount').value = '';
+    document.getElementById('quickExpenseDesc').value = '';
+    closeModal('quickExpenseModal');
     updateDisplay();
-    localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
 }
+
 
 
         // Close modal
