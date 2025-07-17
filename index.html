@@ -710,6 +710,7 @@ html, body {
 
     <script>
         // Load from localStorage if available
+// ✅ This one loads from localStorage
 window.onload = function () {
     const saved = localStorage.getItem('budgetData');
     if (saved) {
@@ -724,9 +725,8 @@ window.onload = function () {
     updateDisplay();
 };
 
-        function formatCurrency(amount) {
-    return `${amount.toFixed(2)} LKR`;
-}
+
+
 
 function updateQuickStats() {
     const today = new Date().toISOString().split('T')[0];
@@ -750,16 +750,14 @@ function updateQuickStats() {
         let dailyBudget = 0;
         let currentFilter = 'all';
 
-        // Load data from memory on page load
-        window.onload = function() {
-            updateDisplay();
-        };
+        
         
 
         // Set daily budget
         function setBudget() {
             const budgetInput = document.getElementById('budgetInput');
             dailyBudget = parseFloat(budgetInput.value) || 0;
+            localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
             budgetInput.value = '';
             updateDisplay();
         }
@@ -837,6 +835,8 @@ function updateQuickStats() {
     document.getElementById('description').value = '';
     document.getElementById('amount').value = '';
     updateDisplay();
+    localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+
 }
 
 
