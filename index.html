@@ -533,12 +533,23 @@ html, body {
     box-sizing: border-box;
 }
 
+/* Blur background when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); /* for Safari */
+  background-color: rgba(0, 0, 0, 0.3);
+}
 
 
 
     </style>
 </head>
 <body>
+    
     
     <div class="floating-action-wrapper">
         <button class="floating-action-btn" onclick="toggleQuickMenu()">+</button>
@@ -552,6 +563,7 @@ html, body {
       
       
       
+      
 
     <div class="container">
         <div class="header">
@@ -561,6 +573,19 @@ html, body {
         
 
         <div class="dashboard">
+            <button class="btn" onclick="openQuickListPopup()" style="margin: 15px 0;">🛒 My List</button>
+            <!-- Quick View List Modal -->
+<div id="quickListPopup" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('quickListPopup')">&times;</span>
+      <h2>🛍️ My Shopping List</h2>
+      <ul id="quickPopupList" style="margin-top: 15px; color: white; list-style: none; padding-left: 0;"></ul>
+    </div>
+  </div>
+  
+  
+
+            
             
             <!-- Budget Overview -->
             <div class="card">
@@ -701,6 +726,7 @@ html, body {
         </div>
     </div>
     <!-- Create List Modal -->
+     
 <div id="createListModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal('createListModal')">&times;</span>
@@ -708,7 +734,30 @@ html, body {
   
       <div class="input-group">
         <input type="text" id="listItemInput" placeholder="Enter item to buy">
+        <select id="quantityUnit" class="btn" style="margin-top: 10px;">
+            <option value="500g">500 g</option>
+            <option value="250g">250 g</option>
+            <option value="1kg">1 Kg</option>
+            <option value="1.5kg">1.5 Kg</option>
+            <option value="2kg">2 Kg</option>
+            <option value="2.5 kg">2.5 kg</option>
+            <option value="1L">1 Liter</option>
+            <option value="2L">2 Liters</option>
+            <option value="1pcs">1 Piece</option>
+            <option value="2pcs">2 Pieces</option>
+            <option value="5pcs">5 Pieces</option>
+            <option value="12pcs">12 Pieces</option>
+            
+           
+            <option value="custom">Custom</option>
+          </select>
+          
+  
+</select>
+
         <button class="btn success" onclick="addListItem()">➕ Add</button>
+        <button class="btn danger" onclick="clearBuyingList()" style="margin-top: 10px;">🧹 Clear List</button>
+
       </div>
   
       <ul id="buyingList" style="margin-top: 15px; color: white; list-style: none; padding-left: 0;"></ul>
@@ -726,6 +775,41 @@ html, body {
     </div>
 
     <script>
+        function openQuickListPopup() {
+    renderQuickPopupList();
+    document.getElementById('quickListPopup').style.display = 'block';
+}
+function openQuickListPopup() {
+    renderQuickPopupList();
+    document.getElementById('quickListPopup').style.display = 'block';
+    document.getElementById('quickListPopup').classList.add('modal-blur');
+    document.body.classList.add('modal-open');
+}
+
+
+function renderQuickPopupList() {
+    const listEl = document.getElementById('quickPopupList');
+    if (buyingItems.length === 0) {
+        listEl.innerHTML = '<p style="color: #aaa;">No items yet.</p>';
+        return;
+    }
+
+    listEl.innerHTML = buyingItems.map((item, index) => `
+        <li style="margin: 12px 0;">
+            <label style="display: flex; align-items: center; gap: 12px;">
+                <input type="checkbox" onchange="toggleListItem(${index}); renderQuickPopupList();" ${item.checked ? 'checked' : ''} style="width: 24px; height: 24px;">
+                <span style="
+                    text-decoration: ${item.checked ? 'line-through' : 'none'};
+                    color: ${item.checked ? 'red' : 'white'};
+                    font-weight: bold;
+                    font-size: 18px;">
+                    ${item.text} <span style="font-size: 16px; color: #ccc;">(${item.unit})</span>
+                </span>
+            </label>
+        </li>
+    `).join('');
+}
+
         let buyingItems = [];
 
 function showListModal() {
@@ -735,14 +819,16 @@ function showListModal() {
 
 function addListItem() {
     const input = document.getElementById('listItemInput');
+    const unit = document.getElementById('quantityUnit').value;
     const text = input.value.trim();
     if (!text) return;
 
-    buyingItems.push({ text, checked: false });
+    buyingItems.push({ text, unit, checked: false });
     input.value = '';
     renderBuyingList();
     saveBuyingList();
 }
+
 
 function renderBuyingList() {
     const listEl = document.getElementById('buyingList');
@@ -752,14 +838,29 @@ function renderBuyingList() {
     }
 
     listEl.innerHTML = buyingItems.map((item, index) => `
-        <li style="margin: 10px 0;">
-            <label style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" onchange="toggleListItem(${index})" ${item.checked ? 'checked' : ''}>
-                <span style="text-decoration: ${item.checked ? 'line-through' : 'none'}">${item.text}</span>
-            </label>
+        <li style="margin: 12px 0;">
+            <span style="
+                font-weight: bold;
+                font-size: 18px;
+                color: white;
+                display: inline-block;">
+                ${item.text} <span style="font-size: 16px; color: #ccc;">(${item.unit})</span>
+            </span>
         </li>
     `).join('');
 }
+
+
+
+function clearBuyingList() {
+    if (confirm("Are you sure you want to clear the entire list?")) {
+        buyingItems = [];
+        saveBuyingList();
+        renderBuyingList();
+        renderHomeQuickList?.();
+    }
+}
+
 
 function toggleListItem(index) {
     buyingItems[index].checked = !buyingItems[index].checked;
@@ -939,6 +1040,12 @@ function updateQuickStats() {
         // Close modal
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
+            function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.getElementById(id).classList.remove('modal-blur');
+}
+
         }
 
         // Delete transaction
