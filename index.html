@@ -543,6 +543,8 @@ html, body {
     <div class="floating-action-wrapper">
         <button class="floating-action-btn" onclick="toggleQuickMenu()">+</button>
         <div id="quickActionMenu" class="quick-popup-menu">
+            <button class="btn" onclick="showListModal(); hideQuickMenu();">📋 Create List</button>
+
           <button class="btn danger" onclick="showQuickExpense(); hideQuickMenu();">💸 Quick Expense</button>
           <button class="btn success" onclick="showQuickIncome(); hideQuickMenu();">💰 Quick Income</button>
         </div>
@@ -698,6 +700,21 @@ html, body {
             <button class="btn success" onclick="addQuickIncome()">Add Income</button>
         </div>
     </div>
+    <!-- Create List Modal -->
+<div id="createListModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('createListModal')">&times;</span>
+      <h2>Create Buying List</h2>
+  
+      <div class="input-group">
+        <input type="text" id="listItemInput" placeholder="Enter item to buy">
+        <button class="btn success" onclick="addListItem()">➕ Add</button>
+      </div>
+  
+      <ul id="buyingList" style="margin-top: 15px; color: white; list-style: none; padding-left: 0;"></ul>
+    </div>
+  </div>
+  
 
     <!-- Statistics Modal -->
     <div id="statisticsModal" class="modal">
@@ -709,6 +726,61 @@ html, body {
     </div>
 
     <script>
+        let buyingItems = [];
+
+function showListModal() {
+    document.getElementById('createListModal').style.display = 'block';
+    renderBuyingList();
+}
+
+function addListItem() {
+    const input = document.getElementById('listItemInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    buyingItems.push({ text, checked: false });
+    input.value = '';
+    renderBuyingList();
+    saveBuyingList();
+}
+
+function renderBuyingList() {
+    const listEl = document.getElementById('buyingList');
+    if (buyingItems.length === 0) {
+        listEl.innerHTML = '<p style="color: #aaa;">No items yet.</p>';
+        return;
+    }
+
+    listEl.innerHTML = buyingItems.map((item, index) => `
+        <li style="margin: 10px 0;">
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" onchange="toggleListItem(${index})" ${item.checked ? 'checked' : ''}>
+                <span style="text-decoration: ${item.checked ? 'line-through' : 'none'}">${item.text}</span>
+            </label>
+        </li>
+    `).join('');
+}
+
+function toggleListItem(index) {
+    buyingItems[index].checked = !buyingItems[index].checked;
+    renderBuyingList();
+    saveBuyingList();
+}
+
+function saveBuyingList() {
+    localStorage.setItem('buyingList', JSON.stringify(buyingItems));
+}
+
+function loadBuyingList() {
+    const saved = localStorage.getItem('buyingList');
+    if (saved) {
+        buyingItems = JSON.parse(saved);
+    }
+}
+
+// Load list on page load
+window.addEventListener('load', loadBuyingList);
+
         // Load from localStorage if available
 // ✅ This one loads from localStorage
 window.onload = function () {
@@ -755,89 +827,43 @@ function updateQuickStats() {
 
         // Set daily budget
         function setBudget() {
-            const budgetInput = document.getElementById('budgetInput');
-            dailyBudget = parseFloat(budgetInput.value) || 0;
-            localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
-            budgetInput.value = '';
-            updateDisplay();
-        }
+    const budgetInput = document.getElementById('budgetInput');
+    const newBudget = parseFloat(budgetInput.value) || 0;
 
-        // Add transaction
-        function addTransaction() {
-    const description = document.getElementById('description').value;
-    let amount = parseFloat(document.getElementById('amount').value);
-    const category = document.getElementById('category').value;
-    const type = document.getElementById('type').value;
+    // Update daily budget
+    dailyBudget = newBudget;
 
-    if (!description || !amount) {
-        alert('Please fill in all fields');
-        return;
-    }
+    // Get today's date
+    const today = new Date().toISOString().split('T')[0];
 
-    const now = new Date();
-    const date = now.toISOString().split('T')[0];
-    const time = now.toLocaleTimeString();
+    // Collect today's expenses
+    const todayExpenses = transactions.filter(t => t.type === 'expense' && t.date === today);
 
-    if (type === 'expense') {
-        const totalSpent = transactions
-            .filter(t => t.type === 'expense' && t.date === date)
-            .reduce((sum, t) => sum + t.amount, 0);
-        const remaining = dailyBudget - totalSpent;
+    // Rebalance today's expenses based on new budget
+    let totalSoFar = 0;
+    transactions = transactions.map(t => {
+        if (t.type !== 'expense' || t.date !== today) return t;
 
-        if (amount > remaining) {
-            // Split into two parts
-            if (remaining > 0) {
-                transactions.push({
-                    id: Date.now(),
-                    description: description + ' (within budget)',
-                    amount: remaining,
-                    category,
-                    type,
-                    date,
-                    time
-                });
-            }
+        totalSoFar += t.amount;
 
-            // Over-budget part
-            transactions.push({
-                id: Date.now() + 1,
-                description: description + ' (over budget)',
-                amount: amount - remaining,
-                category,
-                type,
-                date,
-                time
-            });
+        // Mark over-budget if needed
+        if (totalSoFar <= newBudget) {
+            // Within budget
+            t.description = t.description.replace(' (over budget)', '').replace(' (within budget)', '') + ' (within budget)';
         } else {
-            transactions.push({
-                id: Date.now(),
-                description,
-                amount,
-                category,
-                type,
-                date,
-                time
-            });
+            // Over budget
+            t.description = t.description.replace(' (over budget)', '').replace(' (within budget)', '') + ' (over budget)';
         }
-    } else {
-        // Income — normal handling
-        transactions.push({
-            id: Date.now(),
-            description,
-            amount,
-            category,
-            type,
-            date,
-            time
-        });
-    }
 
-    document.getElementById('description').value = '';
-    document.getElementById('amount').value = '';
-    updateDisplay();
+        return t;
+    });
+
+    // Save and update
     localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
-
+    budgetInput.value = '';
+    updateDisplay();
 }
+
 
 
         // Show quick expense modal
@@ -879,9 +905,9 @@ function updateQuickStats() {
         }
 
         // Add quick income
-        function addQuickExpense() {
-    let amount = parseFloat(document.getElementById('quickExpenseAmount').value);
-    const description = document.getElementById('quickExpenseDesc').value;
+        function addQuickIncome() {
+    let amount = parseFloat(document.getElementById('quickIncomeAmount').value);
+    const description = document.getElementById('quickIncomeDesc').value;
 
     if (!amount || !description) {
         alert('Please fill in all fields');
@@ -892,50 +918,23 @@ function updateQuickStats() {
     const date = now.toISOString().split('T')[0];
     const time = now.toLocaleTimeString();
 
-    const totalSpent = transactions
-        .filter(t => t.type === 'expense' && t.date === date)
-        .reduce((sum, t) => sum + t.amount, 0);
-    const remaining = dailyBudget - totalSpent;
+    transactions.push({
+        id: Date.now(),
+        description,
+        amount,
+        category: 'Other',
+        type: 'income',
+        date,
+        time
+    });
 
-    if (amount > remaining) {
-        if (remaining > 0) {
-            transactions.push({
-                id: Date.now(),
-                description: description + ' (within budget)',
-                amount: remaining,
-                category: 'Other',
-                type: 'expense',
-                date,
-                time
-            });
-        }
-
-        transactions.push({
-            id: Date.now() + 1,
-            description: description + ' (over budget)',
-            amount: amount - remaining,
-            category: 'Other',
-            type: 'expense',
-            date,
-            time
-        });
-    } else {
-        transactions.push({
-            id: Date.now(),
-            description,
-            amount,
-            category: 'Other',
-            type: 'expense',
-            date,
-            time
-        });
-    }
-
-    document.getElementById('quickExpenseAmount').value = '';
-    document.getElementById('quickExpenseDesc').value = '';
-    closeModal('quickExpenseModal');
+    document.getElementById('quickIncomeAmount').value = '';
+    document.getElementById('quickIncomeDesc').value = '';
+    closeModal('quickIncomeModal');
     updateDisplay();
+    localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
 }
+
 
         // Close modal
         function closeModal(modalId) {
@@ -1016,33 +1015,64 @@ function updateQuickStats() {
 
         // Update transactions list
         function updateTransactionsList() {
-            const transactionsList = document.getElementById('transactionsList');
-            const filteredTransactions = getFilteredTransactions();
+    const transactionsList = document.getElementById('transactionsList');
+    const filteredTransactions = getFilteredTransactions();
 
-            if (filteredTransactions.length === 0) {
-                transactionsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No transactions found for the selected filter.</p>';
-                return;
-            }
+    if (filteredTransactions.length === 0) {
+        transactionsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No transactions found for the selected filter.</p>';
+        return;
+    }
 
-            const transactionsHTML = filteredTransactions
-                .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time))
-                .map(transaction => `
+    const grouped = groupTransactionsByDay(filteredTransactions);
+
+    const html = grouped.map(group => {
+        const dayBlock = `
+            <div style="margin-bottom: 15px;">
+                <h4 style="color: #ccc; border-bottom: 1px solid #555; margin-bottom: 10px;">
+                    📅 ${new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </h4>
+                ${group.transactions.map(transaction => `
                     <div class="transaction">
                         <div class="transaction-details">
                             <div class="transaction-description">${transaction.description}</div>
-                            <div class="transaction-info">${transaction.category} • ${transaction.date} • ${transaction.time}</div>
+                            <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
                         </div>
-                       <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
-
-    ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
-</div>
-
+                        <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
+                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+                        </div>
                         <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
                     </div>
-                `).join('');
+                `).join('')}
+            </div>
+        `;
+        return dayBlock;
+    }).join('');
 
-            transactionsList.innerHTML = transactionsHTML;
+    transactionsList.innerHTML = html;
+}
+
+            function groupTransactionsByDay(transactions) {
+    const grouped = {};
+
+    transactions.forEach(transaction => {
+        const date = transaction.date;
+        if (!grouped[date]) {
+            grouped[date] = [];
         }
+        grouped[date].push(transaction);
+    });
+
+    // Sort dates descending
+    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+    return sortedDates.map(date => ({
+        date,
+        transactions: grouped[date].sort((a, b) => new Date(b.time) - new Date(a.time))
+    }));
+}
+
+            
+        
 
         // Clear all data
         function clearAllData() {
