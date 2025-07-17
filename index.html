@@ -662,14 +662,17 @@ body.modal-open {
                 <div class="input-group">
                     <label>Category</label>
                     <select id="category">
-                        <option value="Food">🍔 Food</option>
-                        <option value="Transport">🚗 Transport</option>
-                        <option value="Shopping">🛍️ Shopping</option>
-                        <option value="Bills">📄 Bills</option>
-                        <option value="Entertainment">🎬 Entertainment</option>
-                        <option value="Health">🏥 Health</option>
-                        <option value="Income">💰 Income</option>
-                        <option value="Other">📦 Other</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="lunch">lunch</option>
+                        <option value="dinner">dinner</option>
+                        <option value="snacks">snacks</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Health">Health</option>
+                        <option value="Income">Income</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
                 <div class="input-group">
@@ -799,7 +802,13 @@ body.modal-open {
     </div>
 
     <script>
-        
+        // These are used to track whether it’s the first time and which IDs are checked.
+let isFirstBudgetSet = true;
+let checkedOverBudgetIds = JSON.parse(localStorage.getItem('checkedOverBudgetIds') || '[]');
+// This variable will hold the sum of the over-budget amounts that are ticked.
+let adjustOverBudget = 0;
+
+
         function openQuickListPopup() {
     renderQuickPopupList();
     document.getElementById('quickListPopup').style.display = 'block';
@@ -953,20 +962,35 @@ function updateQuickStats() {
 
         // Set daily budget
         function setBudget() {
-  const budgetInput = document.getElementById('budgetInput');
-  const added = parseFloat(budgetInput.value) || 0;
+    const budgetInput = document.getElementById('budgetInput');
+    const newBudget = parseFloat(budgetInput.value);
 
-  if (added <= 0 || isNaN(added)) {
-    alert("Please enter a valid budget amount.");
-    return;
-  }
+    if (isNaN(newBudget) || newBudget <= 0) {
+        alert("Enter a valid amount.");
+        return;
+    }
 
-  dailyBudget += added;
-  budgetInput.value = '';
+    // ADD to existing daily budget (not replace)
+    dailyBudget += newBudget;
 
-  localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
-  updateDisplay();
+    // Calculate adjustment from checked over-budget items
+    const checkedOverBudgetAmount = transactions.filter(
+        t => t.type === 'expense' &&
+             t.description.toLowerCase().includes('(over budget)') &&
+             checkedOverBudgetIds.includes(t.id)
+    ).reduce((sum, t) => sum + t.amount, 0);
+
+    adjustOverBudget = checkedOverBudgetAmount;
+
+    budgetInput.value = '';
+    localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+    updateDisplay();
 }
+
+
+
+
+
 
     // Update daily budget
     dailyBudget = newBudget;
@@ -1176,8 +1200,23 @@ function updateQuickStats() {
             // Update totals
             document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
             document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
-            document.getElementById('remainingBudget').textContent = (dailyBudget - totalExpense).toFixed(2);
+            const today = new Date().toISOString().split('T')[0];
+            // Calculate today's date (assumed format used by your transactions)
+const todayDate = new Date().toISOString().split('T')[0];
 
+// Calculate today's expense (make sure the variable name doesn't conflict with others)
+const todayOnlyExpenses = transactions
+  .filter(t => t.type === 'expense' && t.date === todayDate)
+  .reduce((sum, t) => sum + t.amount, 0);
+
+// Calculate remaining budget
+const remaining = dailyBudget - todayOnlyExpenses + adjustOverBudget;
+
+// Update the remaining display (use toFixed(2) for formatting)
+document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
+
+
+            
 
             // Update budget display
             document.getElementById('totalBudget').textContent = `${dailyBudget.toFixed(2)} LKR`;
@@ -1214,16 +1253,29 @@ function updateQuickStats() {
                     📅 ${new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </h4>
                 ${group.transactions.map(transaction => `
-                    <div class="transaction">
-                        <div class="transaction-details">
-                            <div class="transaction-description">${transaction.description}</div>
-                            <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
-                        </div>
-                        <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
-                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
-                        </div>
-                        <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
-                    </div>
+                    
+  <div class="transaction">
+  <div class="transaction-details">
+    <div class="transaction-description">${transaction.description}</div>
+    <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
+  </div>
+
+  <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
+    ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+  </div>
+
+  ${transaction.type === 'expense' && isOverBudget(transaction) ? `
+    <input type="checkbox"
+      onchange="toggleOverBudgetCheck(${transaction.id})"
+      ${checkedOverBudgetIds.includes(transaction.id) ? 'checked' : ''}
+      style="margin-left: 8px; width: 18px; height: 18px;">
+  ` : ''}
+</div>
+
+
+
+
+
                 `).join('')}
             </div>
         `;
@@ -1257,13 +1309,43 @@ function updateQuickStats() {
         
 
         // Clear all data
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-                transactions = [];
-                dailyBudget = 0;
-                updateDisplay();
-            }
+        // Find this function in your HTML file (around line 800-810)
+// REPLACE the existing clearAllData function with this:
+
+// Find this function in your HTML file (around line 800-810)
+// REPLACE the existing clearAllData function with this:
+
+function clearAllData() {
+    if (confirm('Are you sure you want to reset budget, balance, income, expense, and remaining amounts? Transaction history will be preserved.')) {
+        // Reset budget
+        dailyBudget = 0;
+        
+        // Reset over-budget tracking
+        checkedOverBudgetIds = [];
+        adjustOverBudget = 0;
+        
+        // Clear the budget input field
+        const budgetInput = document.getElementById('budgetInput');
+        if (budgetInput) {
+            budgetInput.value = '';
         }
+        
+        // Reset display values to 0 (keeping transaction history intact)
+        document.getElementById('balance').textContent = '0 LKR';
+        document.getElementById('balance').className = 'amount neutral';
+        document.getElementById('totalIncome').textContent = '0';
+        document.getElementById('totalExpense').textContent = '0';
+        document.getElementById('remainingBudget').textContent = '0';
+        document.getElementById('totalBudget').textContent = '0 LKR';
+        document.getElementById('budgetProgress').style.width = '0%';
+        
+        // Save to localStorage (keeping transactions)
+        localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
+        localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+        
+        alert('Budget, balance, income, expense, and remaining amounts have been reset! Transaction history preserved.');
+    }
+}
 
         // Export data
         function exportData() {
@@ -1393,7 +1475,28 @@ window.addEventListener("click", function(event) {
     modal.style.display = "none";
   }
 });
+window.firstTimeBudgetSet = true;
 
+
+function toggleOverBudgetCheck(id) {
+    const idx = checkedOverBudgetIds.indexOf(id);
+    if (idx === -1) {
+        checkedOverBudgetIds.push(id);
+    } else {
+        checkedOverBudgetIds.splice(idx, 1);
+    }
+    localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
+    
+    // Recalculate adjustment
+    const checkedOverBudgetAmount = transactions.filter(
+        t => t.type === 'expense' &&
+             t.description.toLowerCase().includes('(over budget)') &&
+             checkedOverBudgetIds.includes(t.id)
+    ).reduce((sum, t) => sum + t.amount, 0);
+    
+    adjustOverBudget = checkedOverBudgetAmount;
+    updateDisplay();
+}
 
 
     </script>
