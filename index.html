@@ -739,13 +739,7 @@ body.modal-open {
                 <label>Source</label>
                 <input type="text" id="quickIncomeDesc" placeholder="Salary, gift, etc.">
             </div>
-            <div class="input-group">
-                <label>Attach Receipt (Optional)</label>
-                <input type="file" id="quickExpenseImage" accept="image/*" capture="environment" style="display:none;" onchange="handleImageAttach(event)">
-                <button class="btn" onclick="document.getElementById('quickExpenseImage').click()">📷 Capture Receipt</button>
-                <div id="imagePreviewIcon" style="margin-top:10px; display:none;">
-                  <button class="btn" onclick="showImagePreview()"> View Attached Reci</button>
-                </div>
+            
               </div>
             <button class="btn success" onclick="addQuickIncome()">Add Income</button>
         </div>
@@ -1022,7 +1016,7 @@ function updateQuickStats() {
         type: 'expense',
         date: now.toISOString().split('T')[0],
         time: now.toLocaleTimeString(),
-        image: attachedImageDataURL || null
+        image: attachedImageDataURL || null // ✅ Save image here
     };
 
     transactions.push(transaction);
@@ -1037,6 +1031,7 @@ function updateQuickStats() {
     closeModal('quickExpenseModal');
     updateDisplay();
 }
+
 
 
 
@@ -1147,14 +1142,15 @@ function updateQuickStats() {
                     📅 ${new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </h4>
                 ${group.transactions.map(transaction => `
-                    <div class="transaction">
-                        <div class="transaction-details">
-                            <div class="transaction-description">${transaction.description}</div>
-                            <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
-                        </div>
-                        <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
-                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
-                        </div>
+                    <div class="transaction-info">
+  ${transaction.category} • ${transaction.time}
+  ${transaction.image ? `
+    <img src="${transaction.image}" 
+         onclick="previewAttachedImage('${transaction.image}')"
+         style="width:28px; height:28px; object-fit:cover; border-radius:6px; margin-left:10px; cursor:pointer; vertical-align:middle;" />
+  ` : ''}
+</div>
+
                         <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
                     </div>
                 `).join('')}
