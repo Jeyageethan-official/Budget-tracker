@@ -546,6 +546,29 @@ body.modal-open {
   -webkit-backdrop-filter: blur(8px); /* for Safari */
   background-color: rgba(0, 0, 0, 0.3);
 }
+img[onclick^="previewAttachedImage"] {
+  width: 24px;
+  height: 24px;
+}
+
+.quick-expense-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between text and image */
+  padding: 8px 12px;
+  cursor: pointer;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+}
+
+.quick-expense-btn img {
+  width: 24px;   /* smaller size to fit button nicely */
+  height: 24px;
+  object-fit: cover;
+  border-radius: 4px;
+}
 
 
 
@@ -850,6 +873,7 @@ function addListItem() {
 }
 
 
+
 function renderBuyingList() {
     const listEl = document.getElementById('buyingList');
     if (buyingItems.length === 0) {
@@ -1142,16 +1166,30 @@ function updateQuickStats() {
                     📅 ${new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </h4>
                 ${group.transactions.map(transaction => `
-                    <div class="transaction-info">
-  ${transaction.category} • ${transaction.time}
-  ${transaction.image ? `
-    <img src="${transaction.image}" 
-         onclick="previewAttachedImage('${transaction.image}')"
-         style="width:28px; height:28px; object-fit:cover; border-radius:6px; margin-left:10px; cursor:pointer; vertical-align:middle;" />
-  ` : ''}
+                    <div class="transaction">
+  <div class="transaction-details">
+    <div class="transaction-description">${transaction.description}</div>
+    <div class="transaction-info">
+      ${transaction.category} • ${transaction.time}
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px;">
+    ${transaction.image ? `
+      <img src="${transaction.image}"
+           onclick="previewAttachedImage('${transaction.image}')"
+           style="width: 28px; height: 28px; object-fit: cover; border-radius: 6px; cursor: pointer;" />
+    ` : ''}
+    
+    <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
+      ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+    </div>
+    <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
+  </div>
 </div>
 
-                        <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
+
+                        
                     </div>
                 `).join('')}
             </div>
