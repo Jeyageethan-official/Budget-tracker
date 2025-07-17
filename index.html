@@ -12,25 +12,25 @@
         }
 
         body {
-            ffont-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
-    min-height: 100vh;
-    padding: 10px;
-    margin: 0;
-    overflow-x: hidden;
-}
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
+            min-height: 100vh;
+            padding: 10px;
+            margin: 0;
+            overflow-x: hidden;
+        }
 
         .container {
             max-width: 1200px;
-    margin: 0 auto;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 25px;
-    box-shadow: 0 25px 50px rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow: hidden;
-    position: relative;
-}
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
 
         .header {
             background: linear-gradient(135deg, #272727, #0c0c0c);
@@ -80,31 +80,32 @@
         }
 
         .card {
-            background: rgba(9, 9, 9, 0.05);
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-    transition: all 0.4s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
-}
-
+            background: rgba(9, 9, 9, 0.8);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
 
         .card:hover {
             transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.2);
-}
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
         .card h3 {
             color: white;
-    margin-bottom: 15px;
-    font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+            margin-bottom: 15px;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .icon {
             width: 24px;
             height: 24px;
@@ -137,23 +138,23 @@
 
         .input-group label {
             display: block;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-    font-size: clamp(0.9rem, 2vw, 1rem);
-}
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
 
         .input-group input, .input-group select {
             width: 100%;
-    padding: 15px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    font-size: clamp(14px, 2.5vw, 16px);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: clamp(14px, 2.5vw, 16px);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
 
         .input-group input:focus, .input-group select:focus {
             outline: none;
@@ -161,8 +162,13 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .input-group select option {
+            background: #333;
+            color: white;
+        }
+
         .btn {
-            background: linear-gradient(135deg, #667eead3, #764ba2);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             padding: 12px 25px;
@@ -180,24 +186,24 @@
         }
 
         .btn.danger {
-            background: linear-gradient(135deg, #667eead3, #764ba2);
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
 
         .btn.success {
-            background: linear-gradient(135deg, #667eead3, #764ba2);
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
         }
 
         .btn.warning {
-            background: linear-gradient(135deg, #667eead3, #764ba2);
+            background: linear-gradient(135deg, #f39c12, #e67e22);
         }
 
         .transactions {
             max-height: 400px;
             overflow-y: auto;
-            border: 1px solid #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 15px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.3);
         }
 
         .transaction {
@@ -206,7 +212,7 @@
             align-items: center;
             padding: 12px;
             margin-bottom: 10px;
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
@@ -223,13 +229,13 @@
 
         .transaction-description {
             font-weight: 500;
-            color: #333;
+            color: white;
             margin-bottom: 5px;
         }
 
         .transaction-info {
             font-size: 0.9em;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .transaction-amount {
@@ -332,7 +338,7 @@
         .export-section {
             margin-top: 20px;
             padding: 20px;
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
 
@@ -349,24 +355,24 @@
 
         .modal-content {
             position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    padding: 30px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-}
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+        }
 
-.modal-content h2 {
-    color: white;
-    margin-bottom: 20px;
-    font-size: clamp(1.3rem, 3vw, 1.8rem);
-}
+        .modal-content h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+        }
 
         .close {
             position: absolute;
@@ -379,6 +385,55 @@
 
         .close:hover {
             color: #333;
+        }
+
+        .floating-action-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .quick-stat {
+            text-align: center;
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quick-stat-value {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .quick-stat-label {
+            font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
         }
 
         @media (max-width: 768px) {
@@ -396,49 +451,6 @@
                 gap: 10px;
             }
         }
-        .floating-action-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.quick-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 10px;
-    margin: 15px 0;
-}
-
-.quick-stat {
-    text-align: center;
-    padding: 15px 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.quick-stat-value {
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
-    font-weight: bold;
-    color: #60a5fa;
-}
-
-.quick-stat-label {
-    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 5px;
-}
     </style>
 </head>
 <body>
