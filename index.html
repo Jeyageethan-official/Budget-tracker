@@ -469,23 +469,11 @@
             <div class="card">
                 <h3><span class="icon budget-icon">📊</span>Budget Overview</h3>
                 <div class="amount neutral" id="totalBudget">0 LKR</div>
+                
                 <div class="progress-bar">
                     <div class="progress-fill" id="budgetProgress"></div>
                 </div>
-                <div class="quick-stats">
-                    <div class="quick-stat">
-                        <div class="quick-stat-value" id="todaySpent">0</div>
-                        <div class="quick-stat-label">Today</div>
-                    </div>
-                    <div class="quick-stat">
-                        <div class="quick-stat-value" id="weekSpent">0</div>
-                        <div class="quick-stat-label">This Week</div>
-                    </div>
-                    <div class="quick-stat">
-                        <div class="quick-stat-value" id="monthSpent">0</div>
-                        <div class="quick-stat-label">This Month</div>
-                    </div>
-                </div>
+                
                 <div class="input-group">
                     <label>Set Daily Budget</label>
                     <input type="number" id="budgetInput" placeholder="Enter daily budget in LKR">
@@ -507,6 +495,11 @@
                         <div class="stat-number" id="totalExpense">0</div>
                         <div class="stat-label">Expenses</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="remainingBudget">0</div>
+                        <div class="stat-label">Remaining</div>
+                    </div>
+                    
                 </div>
             </div>
             
@@ -812,6 +805,8 @@ function updateQuickStats() {
             // Update totals
             document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
             document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
+            document.getElementById('remainingBudget').textContent = (dailyBudget - totalExpense).toFixed(2);
+
 
             // Update budget display
             document.getElementById('totalBudget').textContent = `${dailyBudget.toFixed(2)} LKR`;
@@ -920,6 +915,11 @@ function updateQuickStats() {
                         <div class="stat-number">${Object.keys(categoryStats).length}</div>
                         <div class="stat-label">Categories Used</div>
                     </div>
+                    <div class="stat-card">
+    <div class="stat-number" id="remainingBudget">0</div>
+    <div class="stat-label">Remaining</div>
+</div>
+
                 </div>
                 <h3>Category Breakdown</h3>
                 ${Object.entries(categoryStats).map(([cat, amount]) => `
