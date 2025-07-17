@@ -150,7 +150,7 @@ html, body {
         .budget-icon { background: #f39c12; }
 
         .amount {
-            font-size: 2em;
+            font-size: 2.8em;
             font-weight: bold;
             margin: 10px 0;
         }
@@ -709,6 +709,21 @@ html, body {
     </div>
 
     <script>
+        // Load from localStorage if available
+window.onload = function () {
+    const saved = localStorage.getItem('budgetData');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            transactions = data.transactions || [];
+            dailyBudget = data.dailyBudget || 0;
+        } catch (e) {
+            console.error("Failed to parse saved data", e);
+        }
+    }
+    updateDisplay();
+};
+
         function formatCurrency(amount) {
     return `${amount.toFixed(2)} LKR`;
 }
@@ -739,6 +754,7 @@ function updateQuickStats() {
         window.onload = function() {
             updateDisplay();
         };
+        
 
         // Set daily budget
         function setBudget() {
@@ -993,7 +1009,10 @@ function updateQuickStats() {
 
             // Update transactions list
             updateTransactionsList();
+            localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+
         }
+        
 
         // Update transactions list
         function updateTransactionsList() {
