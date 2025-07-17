@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Budget Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            ffont-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
+    min-height: 100vh;
+    padding: 10px;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+        .container {
+            max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 25px;
+    box-shadow: 0 25px 50px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+        .header {
+            background: linear-gradient(135deg, #272727, #0c0c0c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-100px); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .card {
+            background: rgba(9, 9, 9, 0.05);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+        .card h3 {
+            color: white;
+    margin-bottom: 15px;
+    font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+        .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+        }
+
+        .income-icon { background: #27ae60; }
+        .expense-icon { background: #e74c3c; }
+        .balance-icon { background: #3498db; }
+        .budget-icon { background: #f39c12; }
+
+        .amount {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .amount.positive { color: #27ae60; }
+        .amount.negative { color: #e74c3c; }
+        .amount.neutral { color: #3498db; }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+}
+
+        .input-group input, .input-group select {
+            width: 100%;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: clamp(14px, 2.5vw, 16px);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eead3, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #667eead3, #764ba2);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #667eead3, #764ba2);
+        }
+
+        .btn.warning {
+            background: linear-gradient(135deg, #667eead3, #764ba2);
+        }
+
+        .transactions {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .transaction {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .transaction:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-description {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .transaction-info {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-right: 10px;
+        }
+
+        .transaction-amount.income {
+            color: #27ae60;
+        }
+
+        .transaction-amount.expense {
+            color: #e74c3c;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #4c4c4c;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #51cf66, #40c057);
+            transition: width 0.3s ease;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: rgb(56, 56, 56);
+            color: #d1d1d1;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .export-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+}
+
+.modal-content h2 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+}
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                justify-content: center;
+            }
+            
+            .transaction {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+        .floating-action-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.quick-stat {
+    text-align: center;
+    padding: 15px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quick-stat-value {
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    font-weight: bold;
+    color: #60a5fa;
+}
+
+.quick-stat-label {
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 5px;
+}
+    </style>
+</head>
+<body>
+    <button class="floating-action-btn" onclick="showQuickExpense()" title="Quick Expense">+</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>💰 Daily Budget Tracker</h1>
+            <p>Manage your finances like a pro with LKr currency</p>
+        </div>
+        
+
+        <div class="dashboard">
+            
+            <!-- Budget Overview -->
+            <div class="card">
+                <h3><span class="icon budget-icon">📊</span>Budget Overview</h3>
+                <div class="amount neutral" id="totalBudget">0 LKR</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="budgetProgress"></div>
+                </div>
+                <div class="quick-stats">
+                    <div class="quick-stat">
+                        <div class="quick-stat-value" id="todaySpent">0</div>
+                        <div class="quick-stat-label">Today</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-value" id="weekSpent">0</div>
+                        <div class="quick-stat-label">This Week</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-value" id="monthSpent">0</div>
+                        <div class="quick-stat-label">This Month</div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Set Daily Budget</label>
+                    <input type="number" id="budgetInput" placeholder="Enter daily budget in LKR">
+                </div>
+                <button class="btn" onclick="setBudget()">Set Budget</button>
+            </div>
+            
+
+            <!-- Total Balance -->
+            <div class="card">
+                <h3><span class="icon balance-icon">💳</span>Current Balance</h3>
+                <div class="amount neutral" id="balance">0 LKR</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalIncome">0</div>
+                        <div class="stat-label">Income</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalExpense">0</div>
+                        <div class="stat-label">Expenses</div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Add Transaction -->
+            <div class="card">
+                <h3><span class="icon income-icon">➕</span>Add Transaction</h3>
+                <div class="input-group">
+                    <label>Description</label>
+                    <input type="text" id="description" placeholder="What did you buy/receive?">
+                </div>
+                <div class="input-group">
+                    <label>Amount (LKR)</label>
+                    <input type="number" id="amount" placeholder="Enter amount">
+                </div>
+                <div class="input-group">
+                    <label>Category</label>
+                    <select id="category">
+                        <option value="Food">🍔 Food</option>
+                        <option value="Transport">🚗 Transport</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Bills">📄 Bills</option>
+                        <option value="Entertainment">🎬 Entertainment</option>
+                        <option value="Health">🏥 Health</option>
+                        <option value="Income">💰 Income</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Type</label>
+                    <select id="type">
+                        <option value="expense">💸 Expense</option>
+                        <option value="income">💰 Income</option>
+                    </select>
+                </div>
+                <button class="btn success" onclick="addTransaction()">Add Transaction</button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h3><span class="icon expense-icon">⚡</span>Quick Actions</h3>
+                <button class="btn warning" onclick="showQuickExpense()">Quick Expense</button>
+                <button class="btn success" onclick="showQuickIncome()">Quick Income</button>
+                <button class="btn danger" onclick="clearAllData()">Clear All</button>
+                <button class="btn" onclick="exportData()">Export Data</button>
+                <button class="btn" onclick="showStatistics()">View Stats</button>
+            </div>
+        </div>
+
+        <!-- Transactions Section -->
+        <div class="card" style="margin: 20px 30px;">
+            <h3><span class="icon balance-icon">📋</span>Transaction History</h3>
+            
+            <div class="filters">
+                <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
+                <button class="filter-btn" onclick="filterTransactions('income')">Income</button>
+                <button class="filter-btn" onclick="filterTransactions('expense')">Expenses</button>
+                <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
+                <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
+            </div>
+
+            <div class="transactions" id="transactionsList">
+                <p style="text-align: center; color: #666; padding: 20px;">No transactions yet. Add your first transaction above!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Expense Modal -->
+    <div id="quickExpenseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('quickExpenseModal')">&times;</span>
+            <h2>Quick Expense</h2>
+            <div class="input-group">
+                <label>Amount (LKR)</label>
+                <input type="number" id="quickExpenseAmount" placeholder="Enter amount">
+            </div>
+            <div class="input-group">
+                <label>What for?</label>
+                <input type="text" id="quickExpenseDesc" placeholder="Coffee, lunch, etc.">
+            </div>
+            <button class="btn danger" onclick="addQuickExpense()">Add Expense</button>
+        </div>
+    </div>
+
+    <!-- Quick Income Modal -->
+    <div id="quickIncomeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('quickIncomeModal')">&times;</span>
+            <h2>Quick Income</h2>
+            <div class="input-group">
+                <label>Amount (LKR)</label>
+                <input type="number" id="quickIncomeAmount" placeholder="Enter amount">
+            </div>
+            <div class="input-group">
+                <label>Source</label>
+                <input type="text" id="quickIncomeDesc" placeholder="Salary, gift, etc.">
+            </div>
+            <button class="btn success" onclick="addQuickIncome()">Add Income</button>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="statisticsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('statisticsModal')">&times;</span>
+            <h2>📊 Detailed Statistics</h2>
+            <div id="statisticsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        function formatCurrency(amount) {
+    return `${amount.toFixed(2)} LKR`;
+}
+
+function updateQuickStats() {
+    const today = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const todaySpent = transactions.filter(t => t.type === 'expense' && t.date === today)
+        .reduce((sum, t) => sum + t.amount, 0);
+    const weekSpent = transactions.filter(t => t.type === 'expense' && t.date >= weekAgo)
+        .reduce((sum, t) => sum + t.amount, 0);
+    const monthSpent = transactions.filter(t => t.type === 'expense' && t.date >= monthAgo)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    document.getElementById('todaySpent').textContent = todaySpent.toFixed(0);
+    document.getElementById('weekSpent').textContent = weekSpent.toFixed(0);
+    document.getElementById('monthSpent').textContent = monthSpent.toFixed(0);
+}
+
+        // Global variables
+        let transactions = [];
+        let dailyBudget = 0;
+        let currentFilter = 'all';
+
+        // Load data from memory on page load
+        window.onload = function() {
+            updateDisplay();
+        };
+
+        // Set daily budget
+        function setBudget() {
+            const budgetInput = document.getElementById('budgetInput');
+            dailyBudget = parseFloat(budgetInput.value) || 0;
+            budgetInput.value = '';
+            updateDisplay();
+        }
+
+        // Add transaction
+        function addTransaction() {
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const type = document.getElementById('type').value;
+
+            if (!description || !amount) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                description: description,
+                amount: amount,
+                category: category,
+                type: type,
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString()
+            };
+
+            transactions.push(transaction);
+            
+            // Clear form
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            
+            updateDisplay();
+        }
+
+        // Show quick expense modal
+        function showQuickExpense() {
+            document.getElementById('quickExpenseModal').style.display = 'block';
+        }
+
+        // Show quick income modal
+        function showQuickIncome() {
+            document.getElementById('quickIncomeModal').style.display = 'block';
+        }
+
+        // Add quick expense
+        function addQuickExpense() {
+            const amount = parseFloat(document.getElementById('quickExpenseAmount').value);
+            const description = document.getElementById('quickExpenseDesc').value;
+
+            if (!amount || !description) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                description: description,
+                amount: amount,
+                category: 'Other',
+                type: 'expense',
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString()
+            };
+
+            transactions.push(transaction);
+            
+            document.getElementById('quickExpenseAmount').value = '';
+            document.getElementById('quickExpenseDesc').value = '';
+            closeModal('quickExpenseModal');
+            updateDisplay();
+        }
+
+        // Add quick income
+        function addQuickIncome() {
+            const amount = parseFloat(document.getElementById('quickIncomeAmount').value);
+            const description = document.getElementById('quickIncomeDesc').value;
+
+            if (!amount || !description) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                description: description,
+                amount: amount,
+                category: 'Income',
+                type: 'income',
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString()
+            };
+
+            transactions.push(transaction);
+            
+            document.getElementById('quickIncomeAmount').value = '';
+            document.getElementById('quickIncomeDesc').value = '';
+            closeModal('quickIncomeModal');
+            updateDisplay();
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Delete transaction
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            updateDisplay();
+        }
+
+        // Filter transactions
+        function filterTransactions(filter) {
+            currentFilter = filter;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateDisplay();
+        }
+
+        // Get filtered transactions
+        function getFilteredTransactions() {
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+            switch(currentFilter) {
+                case 'income':
+                    return transactions.filter(t => t.type === 'income');
+                case 'expense':
+                    return transactions.filter(t => t.type === 'expense');
+                case 'today':
+                    return transactions.filter(t => t.date === today);
+                case 'week':
+                    return transactions.filter(t => t.date >= weekAgo);
+                default:
+                    return transactions;
+            }
+        }
+
+        // Update display
+        function updateDisplay() {
+            const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const balance = totalIncome - totalExpense;
+            
+
+            // Update balance display
+            const balanceEl = document.getElementById('balance');
+            balanceEl.textContent = `${balance.toFixed(2)} LKR`;
+            balanceEl.className = `amount ${balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'neutral'}`;
+
+            // Update totals
+            document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
+            document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
+
+            // Update budget display
+            document.getElementById('totalBudget').textContent = `${dailyBudget.toFixed(2)} LKR`;
+            
+            // Update budget progress
+            const todayExpenses = transactions.filter(t => t.type === 'expense' && t.date === new Date().toISOString().split('T')[0])
+                .reduce((sum, t) => sum + t.amount, 0);
+            const budgetProgress = dailyBudget > 0 ? (todayExpenses / dailyBudget) * 100 : 0;
+            document.getElementById('budgetProgress').style.width = `${Math.min(budgetProgress, 100)}%`;
+
+            // Update transactions list
+            updateTransactionsList();
+        }
+
+        // Update transactions list
+        function updateTransactionsList() {
+            const transactionsList = document.getElementById('transactionsList');
+            const filteredTransactions = getFilteredTransactions();
+
+            if (filteredTransactions.length === 0) {
+                transactionsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No transactions found for the selected filter.</p>';
+                return;
+            }
+
+            const transactionsHTML = filteredTransactions
+                .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time))
+                .map(transaction => `
+                    <div class="transaction">
+                        <div class="transaction-details">
+                            <div class="transaction-description">${transaction.description}</div>
+                            <div class="transaction-info">${transaction.category} • ${transaction.date} • ${transaction.time}</div>
+                        </div>
+                        <div class="transaction-amount ${transaction.type}">
+                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+                        </div>
+                        <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
+                    </div>
+                `).join('');
+
+            transactionsList.innerHTML = transactionsHTML;
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                transactions = [];
+                dailyBudget = 0;
+                updateDisplay();
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                transactions: transactions,
+                dailyBudget: dailyBudget,
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `budget_data_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Show statistics
+        function showStatistics() {
+            const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            
+            // Category breakdown
+            const categoryStats = {};
+            transactions.forEach(t => {
+                if (t.type === 'expense') {
+                    categoryStats[t.category] = (categoryStats[t.category] || 0) + t.amount;
+                }
+            });
+
+            // Daily spending
+            const dailyStats = {};
+            transactions.forEach(t => {
+                if (t.type === 'expense') {
+                    dailyStats[t.date] = (dailyStats[t.date] || 0) + t.amount;
+                }
+            });
+
+            const avgDaily = Object.values(dailyStats).reduce((a, b) => a + b, 0) / Object.keys(dailyStats).length || 0;
+
+            const statsHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${transactions.length}</div>
+                        <div class="stat-label">Total Transactions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${avgDaily.toFixed(2)}</div>
+                        <div class="stat-label">Avg Daily Spending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${Object.keys(categoryStats).length}</div>
+                        <div class="stat-label">Categories Used</div>
+                    </div>
+                </div>
+                <h3>Category Breakdown</h3>
+                ${Object.entries(categoryStats).map(([cat, amount]) => `
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+                        <span>${cat}</span>
+                        <span>${amount.toFixed(2)} LKR</span>
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('statisticsContent').innerHTML = statsHTML;
+            document.getElementById('statisticsModal').style.display = 'block';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
