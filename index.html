@@ -775,6 +775,7 @@ body.modal-open {
     </div>
 
     <script>
+        
         function openQuickListPopup() {
     renderQuickPopupList();
     document.getElementById('quickListPopup').style.display = 'block';
@@ -1312,8 +1313,19 @@ function isOverBudget(transaction) {
     return transaction.description.toLowerCase().includes('(over budget)');
 }
 
+window.addEventListener("click", function(event) {
+  const modal = document.getElementById("myModal"); // Change to your modal ID
+  if (modal && modal.style.display === "block" && !modal.contains(event.target)) {
+    modal.style.display = "none";
+  }
+});
+document.getElementById("openModalBtn").addEventListener("click", function() {
+  document.getElementById("myModal").style.display = "block";
+});
+
 
 
     </script>
+    
 </body>
 </html>
