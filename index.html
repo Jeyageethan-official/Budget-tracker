@@ -913,6 +913,41 @@ function openQuickListPopup() {
     document.body.classList.add('modal-open');
 }
 
+function addTransaction() {
+  const description = document.getElementById('description').value.trim();
+  const amountStr = document.getElementById('amount').value.trim();
+  const category = document.getElementById('category').value;
+  const type = document.getElementById('type').value;
+
+  if (!description || !amountStr || isNaN(amountStr)) {
+    alert("Please enter a valid description and amount.");
+    return;
+  }
+
+  const amount = parseFloat(amountStr);
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toLocaleTimeString();
+
+  transactions.push({
+    id: Date.now(),
+    description,
+    amount,
+    category,
+    type,
+    date,
+    time
+  });
+
+  // Clear input fields
+  document.getElementById('description').value = '';
+  document.getElementById('amount').value = '';
+  document.getElementById('category').value = 'Food';
+  document.getElementById('type').value = 'expense';
+
+  updateDisplay();
+}
+
 
 function renderQuickPopupList() {
     const listEl = document.getElementById('quickPopupList');
