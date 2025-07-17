@@ -3,7 +3,7 @@
 <head>
     <meta name="theme-color" content="#000000">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
     <title>Daily Budget Tracker</title>
@@ -548,127 +548,12 @@ body.modal-open {
 }
 
 
-.numpad-overlay {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #000;
-  padding: 10px;
-  z-index: 9999;
-}
 
-.numpad {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.numpad-row {
-  display: flex;
-  gap: 10px;
-}
-
-.numpad-row button {
-  flex: 1;
-  padding: 15px;
-  font-size: 18px;
-  border: none;
-  background: #111;
-  color: white;
-  border-radius: 8px;
-}
-
-.numpad-row button:active {
-  background: #333;
-}
-
-.numpad-overlay {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #000;
-  padding: 10px;
-  z-index: 9999;
-  animation: slideUp 0.3s ease-out;
-}
-.numpad {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.numpad-row {
-  display: flex;
-  gap: 10px;
-}
-.numpad-row button {
-  flex: 1;
-  padding: 15px;
-  font-size: 18px;
-  border: none;
-  background: #111;
-  color: white;
-  border-radius: 10px;
-}
-.numpad-row button:active {
-  background: #444;
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-/* Simple hover and press color for keypad buttons */
-.numpad-row button {
-  background: #111;
-  color: white;
-  border: none;
-  padding: 16px;
-  font-size: 18px;
-  border-radius: 8px;
-  transition: background 0.2s ease;
-}
-
-/* Hover color */
-.numpad-row button:hover {
-  background-color: #333;
-}
-
-/* When pressed */
-.numpad-row button:active {
-  background-color: #555;
-}
 
 
     </style>
 </head>
 <body>
-    <div id="customNumpad" style="display: none;" class="numpad-overlay">
-        <div class="numpad">
-          <div class="numpad-row">
-            <button onclick="numpadPress('1')">1</button>
-            <button onclick="numpadPress('2')">2</button>
-            <button onclick="numpadPress('3')">3</button>
-          </div>
-          <div class="numpad-row">
-            <button onclick="numpadPress('4')">4</button>
-            <button onclick="numpadPress('5')">5</button>
-            <button onclick="numpadPress('6')">6</button>
-          </div>
-          <div class="numpad-row">
-            <button onclick="numpadPress('7')">7</button>
-            <button onclick="numpadPress('8')">8</button>
-            <button onclick="numpadPress('9')">9</button>
-          </div>
-          <div class="numpad-row">
-            <button onclick="numpadPress('0')">0</button>
-            <button onclick="numpadDelete()">X</button>
-            <button onclick="closeNumpad()">OK</button>
-          </div>
-        </div>
-      </div>
-      
     
     
     <div class="floating-action-wrapper">
@@ -718,11 +603,11 @@ body.modal-open {
                 
                 <div class="input-group">
                     <label>Set Daily Budget</label>
-                    <input type="text" id="budgetInput" placeholder="Enter daily budget in LKR" onclick="showNumpad(this)" readonly>
-                    
-
+                    <input type="number" id="budgetInput" placeholder="Enter daily budget in LKR">
                 </div>
-                <button class="btn" onclick="setBudget()">Set Budget</button>
+                <button class="btn success" onclick="setBudget()">Set Budget</button>
+                <button class="btn danger" onclick="clearBudget()">Clear Budget</button>
+
             </div>
             
 
@@ -757,8 +642,7 @@ body.modal-open {
                 </div>
                 <div class="input-group">
                     <label>Amount (LKR)</label>
-                    <input type="text" id="amount" placeholder="Enter amount" onclick="showNumpad(this)" readonly>
-
+                    <input type="number" id="amount" placeholder="Enter amount">
                 </div>
                 <div class="input-group">
                     <label>Category</label>
@@ -823,7 +707,7 @@ body.modal-open {
             <h2>Quick Expense</h2>
             <div class="input-group">
                 <label>Amount (LKR)</label>
-                <input type="text" id="quickExpenseAmount" placeholder="Enter amount" onclick="showNumpad(this)" readonly>
+                <input type="number" id="quickExpenseAmount" placeholder="Enter amount">
             </div>
             <div class="input-group">
                 <label>What for?</label>
@@ -841,8 +725,7 @@ body.modal-open {
             <h2>Quick Income</h2>
             <div class="input-group">
                 <label>Amount (LKR)</label>
-                <input type="text" id="quickIncomeAmount" placeholder="Enter amount" onclick="showNumpad(this)" readonly>
-
+                <input type="number" id="quickIncomeAmount" placeholder="Enter amount">
             </div>
             <div class="input-group">
                 <label>Source</label>
@@ -911,41 +794,6 @@ function openQuickListPopup() {
     document.getElementById('quickListPopup').style.display = 'block';
     document.getElementById('quickListPopup').classList.add('modal-blur');
     document.body.classList.add('modal-open');
-}
-
-function addTransaction() {
-  const description = document.getElementById('description').value.trim();
-  const amountStr = document.getElementById('amount').value.trim();
-  const category = document.getElementById('category').value;
-  const type = document.getElementById('type').value;
-
-  if (!description || !amountStr || isNaN(amountStr)) {
-    alert("Please enter a valid description and amount.");
-    return;
-  }
-
-  const amount = parseFloat(amountStr);
-  const now = new Date();
-  const date = now.toISOString().split('T')[0];
-  const time = now.toLocaleTimeString();
-
-  transactions.push({
-    id: Date.now(),
-    description,
-    amount,
-    category,
-    type,
-    date,
-    time
-  });
-
-  // Clear input fields
-  document.getElementById('description').value = '';
-  document.getElementById('amount').value = '';
-  document.getElementById('category').value = 'Food';
-  document.getElementById('type').value = 'expense';
-
-  updateDisplay();
 }
 
 
@@ -1090,8 +938,20 @@ function updateQuickStats() {
 
         // Set daily budget
         function setBudget() {
-    const budgetInput = document.getElementById('budgetInput');
-    const newBudget = parseFloat(budgetInput.value) || 0;
+  const budgetInput = document.getElementById('budgetInput');
+  const added = parseFloat(budgetInput.value) || 0;
+
+  if (added <= 0 || isNaN(added)) {
+    alert("Please enter a valid budget amount.");
+    return;
+  }
+
+  dailyBudget += added;
+  budgetInput.value = '';
+
+  localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+  updateDisplay();
+}
 
     // Update daily budget
     dailyBudget = newBudget;
@@ -1125,8 +985,13 @@ function updateQuickStats() {
     localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
     budgetInput.value = '';
     updateDisplay();
-}
 
+
+    function clearBudget() {
+  dailyBudget = 0;
+  localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+  updateDisplay();
+}
 
 
         // Show quick expense modal
@@ -1138,6 +1003,34 @@ function updateQuickStats() {
         function showQuickIncome() {
             document.getElementById('quickIncomeModal').style.display = 'block';
         }
+
+        function addQuickIncome() {
+  const amountInput = document.getElementById('quickIncomeAmount');
+  const amount = parseFloat(amountInput.value);
+
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid income amount.");
+    return;
+  }
+
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toLocaleTimeString();
+
+  transactions.push({
+    id: Date.now(),
+    description: 'Quick Income',
+    amount,
+    category: 'Income',
+    type: 'income',
+    date,
+    time
+  });
+
+  amountInput.value = '';
+  localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+  updateDisplay();
+}
 
         // Add quick expense
         function addQuickExpense() {
@@ -1486,57 +1379,9 @@ window.addEventListener("click", function(event) {
   }
 });
 
-let currentInput = null;
-
-function showNumpad(inputElement) {
-  currentInput = inputElement;
-  document.getElementById('customNumpad').style.display = 'block';
-}
-
-function closeNumpad() {
-  document.getElementById('customNumpad').style.display = 'none';
-  currentInput = null;
-}
-
-function numpadPress(value) {
-  if (currentInput) {
-    currentInput.value += value;
-  }
-}
-
-function numpadDelete() {
-  if (currentInput) {
-    currentInput.value = currentInput.value.slice(0, -1);
-  }
-}
 
 
     </script>
-    <div id="customNumpad" class="numpad-overlay" style="display: none;">
-        <div class="numpad">
-          <div class="numpad-row">
-            <button onclick="numpadPress('1')">1</button>
-            <button onclick="numpadPress('2')">2</button>
-            <button onclick="numpadPress('3')">3</button>
-          </div>
-          <div class="numpad-row">
-            <button onclick="numpadPress('4')">4</button>
-            <button onclick="numpadPress('5')">5</button>
-            <button onclick="numpadPress('6')">6</button>
-          </div>
-          <div class="numpad-row">
-            <button onclick="numpadPress('7')">7</button>
-            <button onclick="numpadPress('8')">8</button>
-            <button onclick="numpadPress('9')">9</button>
-          </div>
-          <div class="numpad-row">
-            <button onclick="numpadPress('0')">0</button>
-            <button onclick="numpadDelete()">X</button>
-            <button onclick="closeNumpad()">OK</button>
-          </div>
-        </div>
-      </div>
-      
     
 </body>
 </html>
