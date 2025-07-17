@@ -570,6 +570,32 @@ img[onclick^="previewAttachedImage"] {
   border-radius: 4px;
 }
 
+.transaction-item {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  transition: transform 0.3s ease;
+  touch-action: pan-y;
+}
+
+.transaction-item.swiped {
+  transform: translateX(-100%);
+}
+
+.transaction-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 80px;
+  background: red;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+}
 
 
 
@@ -1184,7 +1210,7 @@ function updateQuickStats() {
     <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
       ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
     </div>
-    <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
+    
   </div>
 </div>
 
@@ -1428,6 +1454,47 @@ function previewAttachedImage(dataURL) {
     modal.onclick = () => document.body.removeChild(modal);
     document.body.appendChild(modal);
 }
+
+
+function enableSwipeToDelete() {
+  const items = document.querySelectorAll('.transaction-item');
+
+  items.forEach((item, index) => {
+    let startX = 0;
+    let currentX = 0;
+    let threshold = 60;
+    let deleted = false;
+
+    item.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    item.addEventListener('touchmove', (e) => {
+      currentX = e.touches[0].clientX;
+      let diff = currentX - startX;
+
+      if (diff < -10) {
+        item.style.transform = `translateX(${diff}px)`;
+      }
+    });
+
+    item.addEventListener('touchend', () => {
+      let diff = currentX - startX;
+
+      if (diff < -threshold) {
+        item.classList.add('swiped');
+        setTimeout(() => {
+          transactions.splice(index, 1);
+          updateDisplay();
+        }, 300);
+      } else {
+        item.style.transform = 'translateX(0)';
+      }
+    });
+  });
+}
+
+enableSwipeToDelete();
 
     </script>
     
