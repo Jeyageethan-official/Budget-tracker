@@ -451,10 +451,58 @@
                 gap: 10px;
             }
         }
+        .floating-action-wrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.quick-popup-menu {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+
+.transaction.over-budget {
+    background-color: rgba(0, 191, 255, 0.12) !important;
+    border-left: 5px solid #00bfff;
+}
+
+.transaction-amount.over-budget {
+    color: #00bfff !important;
+    font-weight: bold;
+}
+
+
+
+
     </style>
 </head>
 <body>
-    <button class="floating-action-btn" onclick="showQuickExpense()" title="Quick Expense">+</button>
+    <div class="floating-action-wrapper">
+        <button class="floating-action-btn" onclick="toggleQuickMenu()">+</button>
+        <div id="quickActionMenu" class="quick-popup-menu">
+          <button class="btn danger" onclick="showQuickExpense(); hideQuickMenu();">💸 Quick Expense</button>
+          <button class="btn success" onclick="showQuickIncome(); hideQuickMenu();">💰 Quick Income</button>
+        </div>
+      </div>
+      
+      
+      
 
     <div class="container">
         <div class="header">
@@ -538,16 +586,7 @@
                 <button class="btn success" onclick="addTransaction()">Add Transaction</button>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="card">
-                <h3><span class="icon expense-icon">⚡</span>Quick Actions</h3>
-                <button class="btn warning" onclick="showQuickExpense()">Quick Expense</button>
-                <button class="btn success" onclick="showQuickIncome()">Quick Income</button>
-                <button class="btn danger" onclick="clearAllData()">Clear All</button>
-                <button class="btn" onclick="exportData()">Export Data</button>
-                <button class="btn" onclick="showStatistics()">View Stats</button>
-            </div>
-        </div>
+            
 
         <!-- Transactions Section -->
         <div class="card" style="margin: 20px 30px;">
@@ -555,8 +594,6 @@
             
             <div class="filters">
                 <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
-                <button class="filter-btn" onclick="filterTransactions('income')">Income</button>
-                <button class="filter-btn" onclick="filterTransactions('expense')">Expenses</button>
                 <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
                 <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
             </div>
@@ -566,6 +603,19 @@
             </div>
         </div>
     </div>
+    <!-- Quick Actions -->
+    <!-- Quick Actions -->
+<div class="card shortcut-box" style="margin: 20px;">
+    <h3><span class="icon expense-icon">⚡</span>Shortcut Actions</h3>
+    <div class="shortcut-grid">
+        <button class="btn danger" onclick="clearAllData()">Clear All</button>
+        <button class="btn" onclick="exportData()">Export Data</button>
+        <button class="btn" onclick="showStatistics()">View Stats</button>
+        <button class="btn" onclick="importData()">Restore Backup</button>
+    </div>
+</div>
+
+</div>
 
     <!-- Quick Expense Modal -->
     <div id="quickExpenseModal" class="modal">
@@ -652,34 +702,79 @@ function updateQuickStats() {
 
         // Add transaction
         function addTransaction() {
-            const description = document.getElementById('description').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            const category = document.getElementById('category').value;
-            const type = document.getElementById('type').value;
+    const description = document.getElementById('description').value;
+    let amount = parseFloat(document.getElementById('amount').value);
+    const category = document.getElementById('category').value;
+    const type = document.getElementById('type').value;
 
-            if (!description || !amount) {
-                alert('Please fill in all fields');
-                return;
+    if (!description || !amount) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const time = now.toLocaleTimeString();
+
+    if (type === 'expense') {
+        const totalSpent = transactions
+            .filter(t => t.type === 'expense' && t.date === date)
+            .reduce((sum, t) => sum + t.amount, 0);
+        const remaining = dailyBudget - totalSpent;
+
+        if (amount > remaining) {
+            // Split into two parts
+            if (remaining > 0) {
+                transactions.push({
+                    id: Date.now(),
+                    description: description + ' (within budget)',
+                    amount: remaining,
+                    category,
+                    type,
+                    date,
+                    time
+                });
             }
 
-            const transaction = {
+            // Over-budget part
+            transactions.push({
+                id: Date.now() + 1,
+                description: description + ' (over budget)',
+                amount: amount - remaining,
+                category,
+                type,
+                date,
+                time
+            });
+        } else {
+            transactions.push({
                 id: Date.now(),
-                description: description,
-                amount: amount,
-                category: category,
-                type: type,
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString()
-            };
-
-            transactions.push(transaction);
-            
-            // Clear form
-            document.getElementById('description').value = '';
-            document.getElementById('amount').value = '';
-            
-            updateDisplay();
+                description,
+                amount,
+                category,
+                type,
+                date,
+                time
+            });
         }
+    } else {
+        // Income — normal handling
+        transactions.push({
+            id: Date.now(),
+            description,
+            amount,
+            category,
+            type,
+            date,
+            time
+        });
+    }
+
+    document.getElementById('description').value = '';
+    document.getElementById('amount').value = '';
+    updateDisplay();
+}
+
 
         // Show quick expense modal
         function showQuickExpense() {
@@ -720,32 +815,63 @@ function updateQuickStats() {
         }
 
         // Add quick income
-        function addQuickIncome() {
-            const amount = parseFloat(document.getElementById('quickIncomeAmount').value);
-            const description = document.getElementById('quickIncomeDesc').value;
+        function addQuickExpense() {
+    let amount = parseFloat(document.getElementById('quickExpenseAmount').value);
+    const description = document.getElementById('quickExpenseDesc').value;
 
-            if (!amount || !description) {
-                alert('Please fill in all fields');
-                return;
-            }
+    if (!amount || !description) {
+        alert('Please fill in all fields');
+        return;
+    }
 
-            const transaction = {
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const time = now.toLocaleTimeString();
+
+    const totalSpent = transactions
+        .filter(t => t.type === 'expense' && t.date === date)
+        .reduce((sum, t) => sum + t.amount, 0);
+    const remaining = dailyBudget - totalSpent;
+
+    if (amount > remaining) {
+        if (remaining > 0) {
+            transactions.push({
                 id: Date.now(),
-                description: description,
-                amount: amount,
-                category: 'Income',
-                type: 'income',
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString()
-            };
-
-            transactions.push(transaction);
-            
-            document.getElementById('quickIncomeAmount').value = '';
-            document.getElementById('quickIncomeDesc').value = '';
-            closeModal('quickIncomeModal');
-            updateDisplay();
+                description: description + ' (within budget)',
+                amount: remaining,
+                category: 'Other',
+                type: 'expense',
+                date,
+                time
+            });
         }
+
+        transactions.push({
+            id: Date.now() + 1,
+            description: description + ' (over budget)',
+            amount: amount - remaining,
+            category: 'Other',
+            type: 'expense',
+            date,
+            time
+        });
+    } else {
+        transactions.push({
+            id: Date.now(),
+            description,
+            amount,
+            category: 'Other',
+            type: 'expense',
+            date,
+            time
+        });
+    }
+
+    document.getElementById('quickExpenseAmount').value = '';
+    document.getElementById('quickExpenseDesc').value = '';
+    closeModal('quickExpenseModal');
+    updateDisplay();
+}
 
         // Close modal
         function closeModal(modalId) {
@@ -839,9 +965,11 @@ function updateQuickStats() {
                             <div class="transaction-description">${transaction.description}</div>
                             <div class="transaction-info">${transaction.category} • ${transaction.date} • ${transaction.time}</div>
                         </div>
-                        <div class="transaction-amount ${transaction.type}">
-                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
-                        </div>
+                       <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
+
+    ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+</div>
+
                         <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button>
                     </div>
                 `).join('');
@@ -940,6 +1068,48 @@ function updateQuickStats() {
                 event.target.style.display = 'none';
             }
         }
+        // Restore data
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+
+    input.onchange = function (event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                transactions = data.transactions || [];
+                dailyBudget = data.dailyBudget || 0;
+                updateDisplay();
+                alert('Backup restored successfully!');
+            } catch (error) {
+                alert('Failed to restore backup. Invalid file format.');
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    input.click();
+}
+function toggleQuickMenu() {
+    const menu = document.getElementById('quickActionMenu');
+    menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function hideQuickMenu() {
+    document.getElementById('quickActionMenu').style.display = 'none';
+}
+function isOverBudget(transaction) {
+    if (transaction.type !== 'expense') return false;
+
+    // Check if description contains "(over budget)"
+    return transaction.description.toLowerCase().includes('(over budget)');
+}
+
+
+
     </script>
 </body>
 </html>
