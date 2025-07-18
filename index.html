@@ -646,6 +646,35 @@ body.modal-open {
   cursor: pointer;
 }
 
+.transaction-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.transaction-delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.transaction-delete-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: white;
+}
+
 
 
 
@@ -1528,25 +1557,23 @@ let currentFilter = 'all';
                 </h4>
                 ${group.transactions.map(transaction => `
                     <div class="transaction" data-id="${transaction.id}">
-                        <div class="transaction-details">
-                            <div class="transaction-description">${transaction.description}</div>
-                            <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
-                        </div>
+    <div class="transaction-details">
+        <div class="transaction-description">${transaction.description}</div>
+        <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
+    </div>
 
-                        <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
-                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
-                        </div>
+    <div class="transaction-amount ${transaction.type}">
+        ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+    </div>
 
-                        ${transaction.type === 'expense' && isOverBudget(transaction) ? `
-                            <input type="checkbox"
-                                onchange="toggleOverBudgetCheck(${transaction.id})"
-                                ${checkedOverBudgetIds.includes(transaction.id) ? 'checked' : ''}
-                                style="margin-left: 8px; width: 18px; height: 18px;">
-                        ` : ''}
+    <button class="transaction-delete-btn" onclick="deleteTransaction(${transaction.id})">
+  <svg viewBox="0 0 24 24">
+    <path d="M9 3v1H4v2h16V4h-5V3H9zm-2 5v12a1 1 0 001 1h8a1 1 0 001-1V8H7zm2 2h2v8H9v-8zm4 0h2v8h-2v-8z"/>
+  </svg>
+</button>
 
-                        <div class="transaction-delete-area" onclick="handleDeleteClick(${transaction.id})">
-                            🗑️ Delete
-                        </div>
+</div>
+
                     </div>
                 `).join('')}
             </div>
