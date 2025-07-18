@@ -867,26 +867,26 @@ body.modal-open {
 let longPressTimer;
 let longPressTransactionId = null;
 
-function setupLongPressListeners() {
+let lastTap = 0;
+let doubleTapTransactionId = null;
+
+function setupDoubleTapListeners() {
   const container = document.getElementById("transactionsList");
 
-  container.addEventListener("touchstart", function (e) {
-    const target = e.target.closest(".transaction");
-    if (!target) return;
+  container.addEventListener("touchend", function (e) {
+    const transaction = e.target.closest(".transaction");
+    if (!transaction) return;
 
-    longPressTransactionId = parseInt(target.getAttribute("data-id"));
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
 
-    longPressTimer = setTimeout(() => {
-      showModal('longPressModal');
-    }, 700); // 700ms = long press
-  });
+    if (tapLength < 500 && tapLength > 0) {
+      // Detected a double tap
+      doubleTapTransactionId = parseInt(transaction.getAttribute("data-id"));
+      showModal("longPressModal");
+    }
 
-  container.addEventListener("touchend", function () {
-    clearTimeout(longPressTimer);
-  });
-
-  container.addEventListener("touchmove", function () {
-    clearTimeout(longPressTimer); // cancel on scroll
+    lastTap = currentTime;
   });
 }
 
@@ -896,12 +896,13 @@ function showModal(id) {
 }
 
 function confirmDelete() {
-  if (longPressTransactionId !== null) {
-    deleteTransaction(longPressTransactionId);
+  if (doubleTapTransactionId !== null) {
+    deleteTransaction(doubleTapTransactionId);
     closeModal('longPressModal');
-    longPressTransactionId = null;
+    doubleTapTransactionId = null;
   }
 }
+
 
         // These are used to track whether it’s the first time and which IDs are checked.
 let isFirstBudgetSet = true;
@@ -1032,7 +1033,7 @@ window.onload = function () {
     }
     updateDisplay();
     initSwipeHandlers(); // Add this line
-    setupLongPressListeners();
+    setupDoubleTapListeners();
 
 };
 
