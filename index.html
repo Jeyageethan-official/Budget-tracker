@@ -614,7 +614,16 @@ body.modal-open {
     </style>
 </head>
 <body>
-    
+    <!-- Long Press Delete Modal -->
+<div id="longPressModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('longPressModal')">&times;</span>
+      <h2>Delete this transaction?</h2>
+      <button class="btn danger" onclick="confirmDelete()">🗑️ Delete</button>
+      <button class="btn" onclick="closeModal('longPressModal')">❌ Cancel</button>
+    </div>
+  </div>
+  
     
     <div class="floating-action-wrapper">
         <button class="floating-action-btn" onclick="toggleQuickMenu()">+</button>
@@ -649,13 +658,13 @@ body.modal-open {
   </div>
   
   <div id="transactionOptionsModal" class="modal">
-    <div class="modal-content">
-      <h2>Transaction Options</h2>
-      <button class="btn danger" onclick="confirmDeleteTransaction()">🗑️ Delete</button>
-      <button class="btn" onclick="closeModal('transactionOptionsModal')">❌ Cancel</button>
-    </div>
+  <div class="modal-content">
+    <h2>Transaction Options</h2>
+    <button class="btn danger" onclick="confirmDeleteTransaction()">🗑️ Delete</button>
+    <button class="btn" onclick="closeModal('transactionOptionsModal')">❌ Cancel</button>
   </div>
-  
+</div>
+
 
             
             
@@ -854,6 +863,46 @@ body.modal-open {
     </div>
 
     <script>
+
+let longPressTimer;
+let longPressTransactionId = null;
+
+function setupLongPressListeners() {
+  const container = document.getElementById("transactionsList");
+
+  container.addEventListener("touchstart", function (e) {
+    const target = e.target.closest(".transaction");
+    if (!target) return;
+
+    longPressTransactionId = parseInt(target.getAttribute("data-id"));
+
+    longPressTimer = setTimeout(() => {
+      showModal('longPressModal');
+    }, 700); // 700ms = long press
+  });
+
+  container.addEventListener("touchend", function () {
+    clearTimeout(longPressTimer);
+  });
+
+  container.addEventListener("touchmove", function () {
+    clearTimeout(longPressTimer); // cancel on scroll
+  });
+}
+
+function showModal(id) {
+  document.getElementById(id).style.display = "block";
+  document.body.classList.add("modal-open");
+}
+
+function confirmDelete() {
+  if (longPressTransactionId !== null) {
+    deleteTransaction(longPressTransactionId);
+    closeModal('longPressModal');
+    longPressTransactionId = null;
+  }
+}
+
         // These are used to track whether it’s the first time and which IDs are checked.
 let isFirstBudgetSet = true;
 let checkedOverBudgetIds = JSON.parse(localStorage.getItem('checkedOverBudgetIds') || '[]');
@@ -915,20 +964,6 @@ function addListItem() {
     saveBuyingList();
 }
 
-let selectedTransactionId = null;
-
-function showTransactionOptionsModal(id) {
-    selectedTransactionId = parseInt(id);
-    document.getElementById('transactionOptionsModal').style.display = 'block';
-    document.body.classList.add('modal-open');
-}
-
-function confirmDeleteTransaction() {
-    if (selectedTransactionId !== null) {
-        deleteTransaction(selectedTransactionId);
-        closeModal('transactionOptionsModal');
-    }
-}
 
 function renderBuyingList() {
     const listEl = document.getElementById('buyingList');
@@ -997,6 +1032,8 @@ window.onload = function () {
     }
     updateDisplay();
     initSwipeHandlers(); // Add this line
+    setupLongPressListeners();
+
 };
 
 // Detect long press on transaction
