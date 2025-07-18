@@ -715,6 +715,15 @@ body.modal-open {
     <div class="floating-action-wrapper">
         <button class="floating-action-btn" onclick="toggleQuickMenu()">+</button>
         <div id="quickActionMenu" class="quick-popup-menu">
+          <button class="btn" onclick="showListModal(); hideQuickMenu();">📋 Create List</button>
+          <button class="btn danger" onclick="showQuickExpense(); hideQuickMenu();">💸 Quick Expense</button>
+          <button class="btn success" onclick="showQuickIncome(); hideQuickMenu();">💰 Quick Income</button>
+        </div>
+      </div>
+      
+              
+          
+        <div id="quickActionMenu" class="quick-popup-menu">
             <button class="btn" onclick="showListModal(); hideQuickMenu();">📋 Create List</button>
 
           <button class="btn danger" onclick="showQuickExpense(); hideQuickMenu();">💸 Quick Expense</button>
@@ -899,21 +908,38 @@ body.modal-open {
 </div>
 
     <!-- Quick Expense Modal -->
-    <div id="quickExpenseModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('quickExpenseModal')">&times;</span>
-            <h2>Quick Expense</h2>
-            <div class="input-group">
-                <label>Amount (LKR)</label>
-                <input type="number" id="quickExpenseAmount" placeholder="Enter amount">
-            </div>
-            <div class="input-group">
-                <label>What for?</label>
-                <input type="text" id="quickExpenseDesc" placeholder="Coffee, lunch, etc.">
-            </div>
-            <button class="btn danger" onclick="addQuickExpense()">Add Expense</button>
-        </div>
+   <!-- Quick Expense Modal -->
+<!-- Quick Expense Modal -->
+<div id="quickExpenseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('quickExpenseModal')">&times;</span>
+      <h2>Quick Expense</h2>
+  
+      <div class="input-group">
+        <label>Amount (LKR)</label>
+        <input type="number" id="quickExpenseAmount" placeholder="Enter amount">
+      </div>
+  
+      <div class="input-group">
+        <label>What for?</label>
+        <input id="quickExpenseDesc" list="whatForSuggestions" placeholder="e.g., Lunch or type your own">
+        <datalist id="whatForSuggestions">
+          <option value="Lunch">
+          <option value="Dinner">
+          <option value="Snacks">
+          <option value="Shopping">
+          <option value="Transport">
+          <option value="Bills">
+          <option value="Entertainment">
+          <option value="Health">
+        </datalist>
+      </div>
+  
+      <button class="btn danger" onclick="addQuickExpense()">Add Expense</button>
     </div>
+  </div>
+  
+  
     
 
     <!-- Quick Income Modal -->
@@ -982,6 +1008,26 @@ body.modal-open {
     </div>
 
     <script>
+
+let quickMenuTimer;
+
+function handleFloatingButtonClick() {
+  if (quickMenuTimer) {
+    clearTimeout(quickMenuTimer);
+    quickMenuTimer = null;
+    toggleQuickMenu(); // Expand menu on second tap
+    return;
+  }
+
+  // First tap: open Quick Expense
+  showQuickExpense();
+
+  // If tapped again within 500ms → show full menu instead
+  quickMenuTimer = setTimeout(() => {
+    quickMenuTimer = null;
+  }, 500);
+}
+
 function triggerDatePicker() {
     document.getElementById('historyDatePicker').click();
 }
@@ -1382,71 +1428,76 @@ let currentFilter = 'all';
 
         // Add quick expense
         function addQuickExpense() {
-    const amount = parseFloat(document.getElementById('quickExpenseAmount').value);
-    const description = document.getElementById('quickExpenseDesc').value;
+  const amount = parseFloat(document.getElementById('quickExpenseAmount').value);
+  const description = document.getElementById('quickExpenseDesc').value.trim();
 
-    if (!amount || !description) {
-        alert('Please fill in all fields');
-        return;
+  if (!amount || amount <= 0) {
+    alert("Please enter a valid amount.");
+    return;
+  }
+
+  if (!description) {
+    alert("Please enter 'What for?'.");
+    return;
+  }
+
+  const now = new Date();
+  const date = selectedDate;
+  const time = now.toLocaleTimeString();
+
+  const remaining = dailyBudget - transactions
+    .filter(t => t.type === 'expense' && t.date === date)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const finalDescription = description;
+  const finalCategory = 'Other';
+
+  if (amount <= remaining) {
+    transactions.push({
+      id: Date.now(),
+      description: finalDescription + ' (within budget)',
+      amount,
+      category: finalCategory,
+      type: 'expense',
+      date,
+      time
+    });
+  } else {
+    const firstPart = remaining > 0 ? remaining : 0;
+    const secondPart = amount - firstPart;
+
+    if (firstPart > 0) {
+      transactions.push({
+        id: Date.now(),
+        description: finalDescription + ' (within budget)',
+        amount: firstPart,
+        category: finalCategory,
+        type: 'expense',
+        date,
+        time
+      });
     }
 
-    const now = new Date();
-    const date = selectedDate; // ✅ Use selected date
-    const time = now.toLocaleTimeString();
+    transactions.push({
+      id: Date.now() + 1,
+      description: finalDescription + ' (over budget)',
+      amount: secondPart,
+      category: finalCategory,
+      type: 'expense',
+      date,
+      time
+    });
+  }
 
-    const remaining = dailyBudget - transactions
-        .filter(t => t.type === 'expense' && t.date === date)
-        .reduce((sum, t) => sum + t.amount, 0);
+  document.getElementById('quickExpenseAmount').value = '';
+  document.getElementById('quickExpenseDesc').value = '';
+  closeModal('quickExpenseModal');
 
-    if (amount <= remaining) {
-        // All within budget
-        transactions.push({
-            id: Date.now(),
-            description: description + ' (within budget)',
-            amount,
-            category: 'Other',
-            type: 'expense',
-            date,
-            time
-        });
-    } else {
-        // Split transaction
-        const firstPart = remaining > 0 ? remaining : 0;
-        const secondPart = amount - firstPart;
-
-        if (firstPart > 0) {
-            transactions.push({
-                id: Date.now(),
-                description: description + ' (within budget)',
-                amount: firstPart,
-                category: 'Other',
-                type: 'expense',
-                date,
-                time
-            });
-        }
-
-        transactions.push({
-            id: Date.now() + 1,
-            description: description + ' (over budget)',
-            amount: secondPart,
-            category: 'Other',
-            type: 'expense',
-            date,
-            time
-        });
-    }
-
-    document.getElementById('quickExpenseAmount').value = '';
-    document.getElementById('quickExpenseDesc').value = '';
-    closeModal('quickExpenseModal');
-
-    // Save to correct day bucket
-    allData[selectedDate] = { transactions, dailyBudget };
-    localStorage.setItem('allBudgetData', JSON.stringify(allData));
-
-    updateDisplay();
+  allData[selectedDate] = { transactions, dailyBudget };
+  localStorage.setItem('allBudgetData', JSON.stringify(allData));
+  updateDisplay();
 }
+
 
 
 
