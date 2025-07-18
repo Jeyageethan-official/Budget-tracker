@@ -685,6 +685,27 @@ body.modal-open {
         
 
         <div class="dashboard">
+            <!-- Styled Search-Like Date Picker -->
+<div class="calendar-search-bar" style="display: flex; justify-content: center; margin-top: 20px;">
+    <div style="position: relative; width: 300px;">
+      <span style="position: absolute; top: 50%; left: 12px; transform: translateY(-50%); color: #ccc; font-size: 18px;">🔍</span>
+      <input
+  type="text"
+  id="searchDateDisplay"
+  readonly
+  style="width: 100%; padding: 10px 10px 10px 40px; border-radius: 8px; border: 1px solid #555; background: rgba(255,255,255,0.05); color: white; font-size: 16px; text-align: center;"
+  onclick="document.getElementById('hiddenDatePicker').click();"
+/>
+
+      <input
+        type="date"
+        id="hiddenDatePicker"
+        onchange="setDate(this.value)"
+        style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;"
+      />
+    </div>
+  </div>
+  
             <button class="btn" onclick="openQuickListPopup()" style="margin: 15px 0;">🛒 My List</button>
             <!-- Quick View List Modal -->
 <div id="quickListPopup" class="modal">
@@ -792,7 +813,7 @@ body.modal-open {
             <h3><span class="icon balance-icon">📋</span>Transaction History</h3>
             <div class="calendar-icon-filter">
                 <label for="historyDatePicker" class="calendar-button" title="Pick a date">📅</label>
-                <input type="date" id="historyDatePicker" onchange="filterBySelectedDate()">
+                <input type="date" id="historyDatePicker" onchange="setDate(this.value)">
             </div>
               
               
@@ -925,6 +946,34 @@ function filterBySelectedDate() {
   currentFilter = 'date:' + selectedDate;
   updateDisplay();
 }
+
+function setDate(dateString) {
+    selectedDate = dateString;
+
+    // Load data for new date
+    transactions = allData[selectedDate]?.transactions || [];
+    dailyBudget = allData[selectedDate]?.dailyBudget || 0;
+
+    // Sync all date inputs
+    if (document.getElementById('historyDatePicker'))
+        document.getElementById('historyDatePicker').value = selectedDate;
+    if (document.getElementById('bottomDatePicker'))
+        document.getElementById('bottomDatePicker').value = selectedDate;
+    if (document.getElementById('hiddenDatePicker'))
+        document.getElementById('hiddenDatePicker').value = selectedDate;
+    if (document.getElementById('searchDateDisplay'))
+        document.getElementById('searchDateDisplay').value = new Date(selectedDate).toLocaleDateString();
+
+    updateDisplay();
+}
+
+// Automatically load today
+window.addEventListener('load', () => {
+    const today = new Date().toISOString().split('T')[0];
+    setDate(today); // Default to today
+    document.getElementById('historyDatePicker').value = today;
+});
+
 
 
 
@@ -1147,9 +1196,12 @@ function updateQuickStats() {
 }
 
         // Global variables
-        let transactions = [];
-        let dailyBudget = 0;
-        let currentFilter = 'all';
+let allData = JSON.parse(localStorage.getItem('allBudgetData') || '{}');
+let selectedDate = new Date().toISOString().split('T')[0];
+
+let transactions = allData[selectedDate]?.transactions || [];
+let dailyBudget = allData[selectedDate]?.dailyBudget || 0;
+let currentFilter = 'all';
 
         
         
@@ -1423,7 +1475,9 @@ document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
 
             // Update transactions list
             updateTransactionsList();
-            localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+            allData[selectedDate] = { transactions, dailyBudget };
+            localStorage.setItem('allBudgetData', JSON.stringify(allData));
+
 
         }
         
