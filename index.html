@@ -611,6 +611,36 @@ body.modal-open {
 }
 
 
+
+
+.view-by-date {
+    margin: 10px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #ddd;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.view-by-date input[type="date"] {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+}
+
+.view-by-date input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+
     </style>
 </head>
 <body>
@@ -752,6 +782,10 @@ body.modal-open {
         <div class="card transaction-fullscreen">
 
             <h3><span class="icon balance-icon">📋</span>Transaction History</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="color:white; font-weight: bold;">📅 View By Date:</label>
+                <input type="date" id="historyDatePicker" onchange="filterBySelectedDate()" class="btn" style="margin-top: 5px;">
+              </div>
             
             
             <div class="filters">
@@ -765,6 +799,13 @@ body.modal-open {
             </div>
         </div>
     </div>
+
+
+
+   
+
+      
+      
     <!-- Quick Actions -->
     <!-- Quick Actions -->
 <div class="card shortcut-box" style="margin: 20px;">
@@ -863,6 +904,15 @@ body.modal-open {
     </div>
 
     <script>
+
+function filterBySelectedDate() {
+  const selectedDate = document.getElementById('historyDatePicker').value;
+  if (!selectedDate) return;
+
+  currentFilter = 'date:' + selectedDate;
+  updateDisplay();
+}
+
 
 let longPressTimer;
 let longPressTransactionId = null;
@@ -1298,22 +1348,23 @@ function updateQuickStats() {
 
         // Get filtered transactions
         function getFilteredTransactions() {
-            const today = new Date().toISOString().split('T')[0];
-            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-            switch(currentFilter) {
-                case 'income':
-                    return transactions.filter(t => t.type === 'income');
-                case 'expense':
-                    return transactions.filter(t => t.type === 'expense');
-                case 'today':
-                    return transactions.filter(t => t.date === today);
-                case 'week':
-                    return transactions.filter(t => t.date >= weekAgo);
-                default:
-                    return transactions;
-            }
-        }
+    if (currentFilter.startsWith('date:')) {
+        const date = currentFilter.split(':')[1];
+        return transactions.filter(t => t.date === date);
+    }
+
+    switch(currentFilter) {
+        case 'income': return transactions.filter(t => t.type === 'income');
+        case 'expense': return transactions.filter(t => t.type === 'expense');
+        case 'today': return transactions.filter(t => t.date === today);
+        case 'week': return transactions.filter(t => t.date >= weekAgo);
+        default: return transactions;
+    }
+}
+
 
         // Update display
         function updateDisplay() {
