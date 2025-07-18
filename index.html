@@ -1330,7 +1330,7 @@ let currentFilter = 'all';
     }
 
     const now = new Date();
-    const date = now.toISOString().split('T')[0];
+    const date = selectedDate; // ✅ Use selected date
     const time = now.toLocaleTimeString();
 
     const remaining = dailyBudget - transactions
@@ -1379,8 +1379,14 @@ let currentFilter = 'all';
     document.getElementById('quickExpenseAmount').value = '';
     document.getElementById('quickExpenseDesc').value = '';
     closeModal('quickExpenseModal');
+
+    // Save to correct day bucket
+    allData[selectedDate] = { transactions, dailyBudget };
+    localStorage.setItem('allBudgetData', JSON.stringify(allData));
+
     updateDisplay();
 }
+
 
 
 
