@@ -942,11 +942,11 @@ function triggerDatePicker() {
 
 function setDate(dateString) {
     selectedDate = dateString;
-
-    // Load data for new date
+    
+    // Load data for selected date from allData structure
     transactions = allData[selectedDate]?.transactions || [];
     dailyBudget = allData[selectedDate]?.dailyBudget || 0;
-
+    
     // Sync all date inputs
     if (document.getElementById('historyDatePicker'))
         document.getElementById('historyDatePicker').value = selectedDate;
@@ -956,7 +956,7 @@ function setDate(dateString) {
         document.getElementById('hiddenDatePicker').value = selectedDate;
     if (document.getElementById('searchDateDisplay'))
         document.getElementById('searchDateDisplay').value = new Date(selectedDate).toLocaleDateString();
-
+    
     updateDisplay();
 }
 
@@ -1126,21 +1126,39 @@ window.addEventListener('load', loadBuyingList);
 
         // Load from localStorage if available
 // ✅ This one loads from localStorage
-window.onload = function () {
-    const saved = localStorage.getItem('budgetData');
-    if (saved) {
+// Replace your current window.onload function with this:
+window.onload = function() {
+    // Load complete app state
+    const savedState = localStorage.getItem('budgetAppState');
+    if (savedState) {
         try {
-            const data = JSON.parse(saved);
-            transactions = data.transactions || [];
-            dailyBudget = data.dailyBudget || 0;
+            const state = JSON.parse(savedState);
+            transactions = state.transactions || [];
+            dailyBudget = state.dailyBudget || 0;
+            checkedOverBudgetIds = state.checkedOverBudgetIds || [];
+            adjustOverBudget = state.adjustOverBudget || 0;
+            selectedDate = state.selectedDate || new Date().toISOString().split('T')[0];
+            
+            // Also load the allData structure
+            const savedAllData = localStorage.getItem('allBudgetData');
+            if (savedAllData) {
+                allData = JSON.parse(savedAllData);
+            }
         } catch (e) {
             console.error("Failed to parse saved data", e);
         }
     }
+    
+    // Initialize date pickers
+    const today = new Date().toISOString().split('T')[0];
+    setDate(today);
+    document.getElementById('historyDatePicker').value = today;
+    
+    // Initialize UI components
     updateDisplay();
-    initSwipeHandlers(); // Add this line
+    initSwipeHandlers();
     setupDoubleTapListeners();
-
+    loadBuyingList();
 };
 
 // Detect long press on transaction
@@ -1432,53 +1450,56 @@ let currentFilter = 'all';
 
         // Update display
         function updateDisplay() {
-            const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-            const balance = totalIncome - totalExpense;
-            
+    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const balance = totalIncome - totalExpense;
+    
+    // Update balance display
+    const balanceEl = document.getElementById('balance');
+    balanceEl.textContent = `${balance.toFixed(2)} LKR`;
+    balanceEl.className = `amount ${balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'neutral'}`;
 
-            // Update balance display
-            const balanceEl = document.getElementById('balance');
-            balanceEl.textContent = `${balance.toFixed(2)} LKR`;
-            balanceEl.className = `amount ${balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'neutral'}`;
+    // Update totals
+    document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
+    document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
+    
+    const todayDate = new Date().toISOString().split('T')[0];
+    const todayOnlyExpenses = transactions
+        .filter(t => t.type === 'expense' && t.date === todayDate)
+        .reduce((sum, t) => sum + t.amount, 0);
 
-            // Update totals
-            document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
-            document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
-            const today = new Date().toISOString().split('T')[0];
-            // Calculate today's date (assumed format used by your transactions)
-const todayDate = new Date().toISOString().split('T')[0];
+    const remaining = dailyBudget - todayOnlyExpenses + adjustOverBudget;
+    document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
 
-// Calculate today's expense (make sure the variable name doesn't conflict with others)
-const todayOnlyExpenses = transactions
-  .filter(t => t.type === 'expense' && t.date === todayDate)
-  .reduce((sum, t) => sum + t.amount, 0);
+    // Update budget display
+    document.getElementById('totalBudget').textContent = `${dailyBudget.toFixed(2)} LKR`;
+    
+    // Update budget progress
+    const todayExpenses = transactions.filter(t => t.type === 'expense' && t.date === todayDate)
+        .reduce((sum, t) => sum + t.amount, 0);
+    const budgetProgress = dailyBudget > 0 ? (todayExpenses / dailyBudget) * 100 : 0;
+    document.getElementById('budgetProgress').style.width = `${Math.min(budgetProgress, 100)}%`;
 
-// Calculate remaining budget
-const remaining = dailyBudget - todayOnlyExpenses + adjustOverBudget;
-
-// Update the remaining display (use toFixed(2) for formatting)
-document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
-
-
-            
-
-            // Update budget display
-            document.getElementById('totalBudget').textContent = `${dailyBudget.toFixed(2)} LKR`;
-            
-            // Update budget progress
-            const todayExpenses = transactions.filter(t => t.type === 'expense' && t.date === new Date().toISOString().split('T')[0])
-                .reduce((sum, t) => sum + t.amount, 0);
-            const budgetProgress = dailyBudget > 0 ? (todayExpenses / dailyBudget) * 100 : 0;
-            document.getElementById('budgetProgress').style.width = `${Math.min(budgetProgress, 100)}%`;
-
-            // Update transactions list
-            updateTransactionsList();
-            allData[selectedDate] = { transactions, dailyBudget };
-            localStorage.setItem('allBudgetData', JSON.stringify(allData));
-
-
-        }
+    // Update transactions list
+    updateTransactionsList();
+    
+    // Save complete state to localStorage
+    const appState = {
+        transactions,
+        dailyBudget,
+        totalIncome,
+        totalExpense,
+        balance,
+        remaining,
+        checkedOverBudgetIds,
+        adjustOverBudget,
+        selectedDate
+    };
+    
+    localStorage.setItem('budgetAppState', JSON.stringify(appState));
+    allData[selectedDate] = { transactions, dailyBudget };
+    localStorage.setItem('allBudgetData', JSON.stringify(allData));
+}
         
 
         // Update transactions list
@@ -1717,11 +1738,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // REPLACE the existing clearAllData function with this:
 
 function clearAllData() {
-    if (confirm('Are you sure you want to reset budget, balance, income, expense, and remaining amounts? Transaction history will be preserved.')) {
-        // Reset budget
+    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+        // Reset all state variables
+        transactions = [];
         dailyBudget = 0;
-        
-        // Reset over-budget tracking
         checkedOverBudgetIds = [];
         adjustOverBudget = 0;
         
@@ -1731,20 +1751,28 @@ function clearAllData() {
             budgetInput.value = '';
         }
         
-        // Reset display values to 0 (keeping transaction history intact)
-        document.getElementById('balance').textContent = '0 LKR';
-        document.getElementById('balance').className = 'amount neutral';
-        document.getElementById('totalIncome').textContent = '0';
-        document.getElementById('totalExpense').textContent = '0';
-        document.getElementById('remainingBudget').textContent = '0';
-        document.getElementById('totalBudget').textContent = '0 LKR';
-        document.getElementById('budgetProgress').style.width = '0%';
+        // Reset allData structure
+        allData = {};
         
-        // Save to localStorage (keeping transactions)
-        localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
-        localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+        // Save to localStorage
+        localStorage.setItem('budgetAppState', JSON.stringify({
+            transactions: [],
+            dailyBudget: 0,
+            totalIncome: 0,
+            totalExpense: 0,
+            balance: 0,
+            remaining: 0,
+            checkedOverBudgetIds: [],
+            adjustOverBudget: 0,
+            selectedDate: new Date().toISOString().split('T')[0]
+        }));
         
-        alert('Budget, balance, income, expense, and remaining amounts have been reset! Transaction history preserved.');
+        localStorage.setItem('allBudgetData', JSON.stringify({}));
+        
+        // Update display
+        updateDisplay();
+        
+        alert('All data has been reset!');
     }
 }
 
