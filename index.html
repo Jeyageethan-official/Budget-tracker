@@ -813,7 +813,7 @@ body.modal-open {
             <h3><span class="icon balance-icon">📋</span>Transaction History</h3>
             <div class="calendar-icon-filter">
                 <label for="historyDatePicker" class="calendar-button" title="Pick a date">📅</label>
-                <input type="date" id="historyDatePicker" onchange="setDate(this.value)">
+                <input type="date" id="historyDatePicker" onchange="filterBySelectedDate()">
             </div>
               
               
@@ -941,11 +941,13 @@ function triggerDatePicker() {
 }
 
 function filterBySelectedDate() {
-  const selectedDate = document.getElementById('historyDatePicker').value;
-  if (!selectedDate) return;
-  currentFilter = 'date:' + selectedDate;
-  updateDisplay();
+    const selected = document.getElementById('historyDatePicker').value;
+    if (!selected) return;
+
+    currentFilter = 'date:' + selected;
+    updateDisplay();
 }
+
 
 function setDate(dateString) {
     selectedDate = dateString;
