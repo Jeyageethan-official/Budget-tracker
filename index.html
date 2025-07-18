@@ -565,7 +565,45 @@ body.modal-open {
   color: #c00;
 }
 
+.transaction {
+    position: relative;
+    overflow: hidden;
+    touch-action: pan-y; /* Allow vertical scrolling but handle horizontal swipes */
+}
 
+.transaction-content {
+    transition: transform 0.3s ease;
+    background: inherit;
+    position: relative;
+    z-index: 1;
+}
+
+.delete-action {
+    position: absolute;
+    right: -80px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: right 0.3s ease;
+    z-index: 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.delete-action:hover {
+    background: #c0392b;
+}
+
+@media (max-width: 768px) {
+    .delete-action {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+}
     </style>
 </head>
 <body>
@@ -1243,6 +1281,87 @@ document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
         transactionsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No transactions found for the selected filter.</p>';
         return;
     }
+    let swipeStartX = 0;
+let swipeCurrentX = 0;
+let isSwipeStarted = false;
+let currentSwipeId = null;
+
+function startSwipe(event, transactionId) {
+    swipeStartX = event.touches[0].clientX;
+    isSwipeStarted = true;
+    currentSwipeId = transactionId;
+}
+
+function handleSwipe(event, transactionId) {
+    if (!isSwipeStarted || currentSwipeId !== transactionId) return;
+    
+    swipeCurrentX = event.touches[0].clientX;
+    const deltaX = swipeStartX - swipeCurrentX;
+    
+    // Only allow left swipe (positive deltaX)
+    if (deltaX > 0) {
+        const content = document.getElementById(`content-${transactionId}`);
+        const deleteBtn = document.getElementById(`delete-${transactionId}`);
+        
+        if (content && deleteBtn) {
+            // Move content left
+            content.style.transform = `translateX(-${Math.min(deltaX, 80)}px)`;
+            // Show delete button
+            deleteBtn.style.right = `${Math.min(deltaX - 80, 0)}px`;
+        }
+    }
+}
+
+function endSwipe(event, transactionId) {
+    if (!isSwipeStarted || currentSwipeId !== transactionId) return;
+    
+    const deltaX = swipeStartX - swipeCurrentX;
+    const content = document.getElementById(`content-${transactionId}`);
+    const deleteBtn = document.getElementById(`delete-${transactionId}`);
+    
+    if (content && deleteBtn) {
+        // If swiped more than 40px, keep delete button visible
+        if (deltaX > 40) {
+            content.style.transform = 'translateX(-80px)';
+            deleteBtn.style.right = '0px';
+        } else {
+            // Reset position
+            content.style.transform = 'translateX(0)';
+            deleteBtn.style.right = '-80px';
+        }
+    }
+    
+    isSwipeStarted = false;
+    currentSwipeId = null;
+}
+
+
+function deleteTransaction(id) {
+    if (confirm('Are you sure you want to delete this transaction?')) {
+        // Remove from checkedOverBudgetIds if it exists
+        const idx = checkedOverBudgetIds.indexOf(id);
+        if (idx !== -1) {
+            checkedOverBudgetIds.splice(idx, 1);
+            localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
+        }
+        
+        // Remove transaction
+        transactions = transactions.filter(t => t.id !== id);
+        
+        // Recalculate adjustment
+        const checkedOverBudgetAmount = transactions.filter(
+            t => t.type === 'expense' &&
+                 t.description.toLowerCase().includes('(over budget)') &&
+                 checkedOverBudgetIds.includes(t.id)
+        ).reduce((sum, t) => sum + t.amount, 0);
+        
+        adjustOverBudget = checkedOverBudgetAmount;
+        
+        // Update display and save
+        updateDisplay();
+        localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+    }
+}
 
     const grouped = groupTransactionsByDay(filteredTransactions);
 
@@ -1253,29 +1372,30 @@ document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
                     📅 ${new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </h4>
                 ${group.transactions.map(transaction => `
-                    
-  <div class="transaction">
-  <div class="transaction-details">
-    <div class="transaction-description">${transaction.description}</div>
-    <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
-  </div>
+                    <div class="transaction" ontouchstart="startSwipe(event, ${transaction.id})" ontouchmove="handleSwipe(event, ${transaction.id})" ontouchend="endSwipe(event, ${transaction.id})" style="position: relative; overflow: hidden;">
+                        <div class="transaction-content" id="content-${transaction.id}" style="transition: transform 0.3s ease; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div class="transaction-details">
+                                <div class="transaction-description">${transaction.description}</div>
+                                <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
+                            </div>
 
-  <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
-    ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
-  </div>
+                            <div class="transaction-amount ${transaction.type} ${transaction.type === 'expense' && isOverBudget(transaction) ? 'over-budget' : ''}">
+                                ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+                            </div>
 
-  ${transaction.type === 'expense' && isOverBudget(transaction) ? `
-    <input type="checkbox"
-      onchange="toggleOverBudgetCheck(${transaction.id})"
-      ${checkedOverBudgetIds.includes(transaction.id) ? 'checked' : ''}
-      style="margin-left: 8px; width: 18px; height: 18px;">
-  ` : ''}
-</div>
-
-
-
-
-
+                            ${transaction.type === 'expense' && isOverBudget(transaction) ? `
+                                <input type="checkbox"
+                                    onchange="toggleOverBudgetCheck(${transaction.id})"
+                                    ${checkedOverBudgetIds.includes(transaction.id) ? 'checked' : ''}
+                                    style="margin-left: 8px; width: 18px; height: 18px;">
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Delete button (hidden by default) -->
+                        <div class="delete-action" id="delete-${transaction.id}" style="position: absolute; right: -80px; top: 50%; transform: translateY(-50%); background: #e74c3c; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; transition: right 0.3s ease;" onclick="deleteTransaction(${transaction.id})">
+                            🗑️ Delete
+                        </div>
+                    </div>
                 `).join('')}
             </div>
         `;
@@ -1284,6 +1404,7 @@ document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
 
     transactionsList.innerHTML = html;
 }
+
 
             function groupTransactionsByDay(transactions) {
     const grouped = {};
