@@ -811,17 +811,20 @@ body.modal-open {
         <div class="card transaction-fullscreen">
 
             <h3><span class="icon balance-icon">📋</span>Transaction History</h3>
-            
-              
-              
-            
-            
-            
             <div class="filters">
                 <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
+                <button class="filter-btn" onclick="filterTransactions('yesterday')">Yesterday</button>
                 <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
                 <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
             </div>
+            
+            
+              
+              
+            
+            
+            
+            
 
             <div class="transactions" id="transactionsList">
                 <p style="text-align: center; color: #666; padding: 20px;">No transactions yet. Add your first transaction above!</p>
@@ -933,6 +936,69 @@ body.modal-open {
     </div>
 
     <script>
+
+
+function saveData() {
+  localStorage.setItem("budgetData", JSON.stringify(allData));
+}
+function loadData() {
+  const stored = localStorage.getItem("budgetData");
+  if (stored) {
+    allData = JSON.parse(stored);
+  }
+
+  if (!allData[selectedDate]) {
+    allData[selectedDate] = {
+      budget: 0,
+      balance: 0,
+      transactions: [],
+      quickExpenses: [],
+    };
+  }
+}
+
+function setDate(dateString) {
+  selectedDate = dateString;
+  document.getElementById("selectedDate").value = selectedDate;
+
+  if (!allData[selectedDate]) {
+    allData[selectedDate] = {
+      budget: 0,
+      balance: 0,
+      transactions: [],
+      quickExpenses: [],
+    };
+  }
+
+  saveData();
+  updateDisplay();
+}
+
+function addTransaction(title, amount) {
+  allData[selectedDate].transactions.push({
+    title,
+    amount,
+    type: "expense",
+    date: selectedDate,
+  });
+
+  allData[selectedDate].balance -= amount;
+  saveData();
+  updateDisplay();
+}
+function addQuickExpense(title, amount) {
+  allData[selectedDate].quickExpenses.push({ title, amount });
+  addTransaction(title, amount);
+}
+
+
+
+
+
+
+
+
+
 function triggerDatePicker() {
     document.getElementById('historyDatePicker').click();
 }
@@ -995,6 +1061,8 @@ function setupDoubleTapListeners() {
     lastTap = currentTime;
   });
 }
+
+
 
 function showModal(id) {
   document.getElementById(id).style.display = "block";
@@ -1413,20 +1481,41 @@ let currentFilter = 'all';
 
         // Get filtered transactions
         function getFilteredTransactions() {
-    const today = new Date().toISOString().split('T')[0];
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const allTransactions = [];
 
-    if (currentFilter.startsWith('date:')) {
-        const date = currentFilter.split(':')[1];
-        return transactions.filter(t => t.date === date);
+  for (const [date, data] of Object.entries(allData)) {
+    if (Array.isArray(data.transactions)) {
+      data.transactions.forEach((t) => {
+        allTransactions.push({ ...t, date });
+      });
     }
+  }
 
-    switch(currentFilter) {
-        case 'today': return transactions.filter(t => t.date === today);
-        case 'week': return transactions.filter(t => t.date >= weekAgo);
-        default: return transactions;
-    }
+  const today = new Date().toISOString().split("T")[0];
+
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(new Date().getDate() - 1);
+  const yesterday = yesterdayDate.toISOString().split("T")[0];
+
+  const weekStartDate = new Date();
+  weekStartDate.setDate(new Date().getDate() - 6);
+  const weekStart = weekStartDate.toISOString().split("T")[0];
+
+  switch (currentFilter) {
+    case "today":
+      return allTransactions.filter((t) => t.date === today);
+    case "yesterday":
+      return allTransactions.filter((t) => t.date === yesterday);
+    case "week":
+      return allTransactions.filter(
+        (t) => t.date >= weekStart && t.date <= today
+      );
+    case "all":
+    default:
+      return allTransactions;
+  }
 }
+
 
 
 
@@ -1898,6 +1987,9 @@ function toggleOverBudgetCheck(id) {
     adjustOverBudget = checkedOverBudgetAmount;
     updateDisplay();
 }
+
+
+
 
 
     </script>
