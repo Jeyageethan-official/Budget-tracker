@@ -827,42 +827,48 @@ body.modal-open {
             
 
             <!-- Add Transaction -->
-            <div class="card">
-                <h3><span class="icon income-icon">➕</span>Add Transaction</h3>
-                <div class="input-group">
-                    <label>Description</label>
-                    <input type="text" id="description" placeholder="What did you buy/receive?">
-                </div>
-                <div class="input-group">
-                    <label>Amount (LKR)</label>
-                    <input type="number" id="amount" placeholder="Enter amount">
-                </div>
-                <div class="input-group">
-                    <label>Category</label>
-                    <select id="category">
-                        <option value="Breakfast">Breakfast</option>
-                        <option value="lunch">lunch</option>
-                        <option value="dinner">dinner</option>
-                        <option value="snacks">snacks</option>
-                        <option value="Transport">Transport</option>
-                        <option value="Shopping">Shopping</option>
-                        <option value="Bills">Bills</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Health">Health</option>
-                        <option value="Income">Income</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Type</label>
-                    <select id="type">
-                        <option value="expense">💸 Expense</option>
-                        <option value="income">💰 Income</option>
-                    </select>
-                </div>
-                <button class="btn success" onclick="addTransaction()">Add Transaction</button>
-            </div>
-
+            <!-- Add Transaction -->
+<div class="card">
+    <h3><span class="icon income-icon">➕</span>Add Transaction</h3>
+  
+    <div class="input-group">
+      <label>Description</label>
+      <input type="text" id="description" placeholder="What did you buy/receive?">
+    </div>
+  
+    <div class="input-group">
+      <label>Amount (LKR)</label>
+      <input type="number" id="amount" placeholder="Enter amount">
+    </div>
+  
+    <div class="input-group">
+      <label>Category</label>
+      <select id="category">
+        <option value="Breakfast">Breakfast</option>
+        <option value="Lunch">Lunch</option>
+        <option value="Dinner">Dinner</option>
+        <option value="Snacks">Snacks</option>
+        <option value="Transport">Transport</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Bills">Bills</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="Health">Health</option>
+        <option value="Income">Income</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+  
+    <div class="input-group">
+      <label>Type</label>
+      <select id="type">
+        <option value="expense">💸 Expense</option>
+        <option value="income">💰 Income</option>
+      </select>
+    </div>
+  
+    <button class="btn success" onclick="addTransaction()">Add Transaction</button>
+  </div>
+  
             
 
         <!-- Transactions Section -->
@@ -1008,6 +1014,48 @@ body.modal-open {
     </div>
 
     <script>
+
+function addTransaction() {
+  const description = document.getElementById('description').value.trim();
+  const amount = parseFloat(document.getElementById('amount').value);
+  const category = document.getElementById('category').value;
+  const type = document.getElementById('type').value;
+
+  if (!description || isNaN(amount) || amount <= 0 || !category || !type) {
+    alert("Please fill in all fields correctly.");
+    return;
+  }
+
+  const now = new Date();
+  const date = selectedDate;
+  const time = now.toLocaleTimeString();
+
+  const transaction = {
+    id: Date.now(),
+    description,
+    amount,
+    category,
+    type,
+    date,
+    time
+  };
+
+  transactions.push(transaction);
+
+  // Save to correct date bucket
+  allData[selectedDate] = { transactions, dailyBudget };
+  localStorage.setItem('allBudgetData', JSON.stringify(allData));
+
+  // Clear inputs
+  document.getElementById('description').value = '';
+  document.getElementById('amount').value = '';
+  document.getElementById('category').value = '';
+  document.getElementById('type').value = 'expense';
+
+  updateDisplay();
+}
+
+
 
 let quickMenuTimer;
 
