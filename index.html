@@ -646,6 +646,22 @@ body.modal-open {
   cursor: pointer;
 }
 
+.filters {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 10px;
+  padding-bottom: 10px;
+  scrollbar-width: none; /* Hide scrollbar (Firefox) */
+}
+
+.filters::-webkit-scrollbar {
+  display: none; /* Hide scrollbar (Chrome/Safari) */
+}
+
+.filter-btn {
+  flex: 0 0 auto; /* Prevent buttons from shrinking or wrapping */
+}
 
 
 
