@@ -819,9 +819,11 @@ body.modal-open {
             
             <div class="filters">
                 <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
+                <button class="filter-btn" onclick="filterTransactions('yesterday')">Yesterday</button>
                 <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
                 <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
             </div>
+            
 
             <div class="transactions" id="transactionsList">
                 <p style="text-align: center; color: #666; padding: 20px;">No transactions yet. Add your first transaction above!</p>
@@ -944,7 +946,7 @@ function setDate(dateString) {
     selectedDate = dateString;
 
     // Load data for new date
-    transactions = allData[selectedDate]?.transactions || [];
+    
     dailyBudget = allData[selectedDate]?.dailyBudget || 0;
 
     // Sync all date inputs
@@ -1400,33 +1402,63 @@ let currentFilter = 'all';
 
         // Filter transactions
         function filterTransactions(filter) {
-            currentFilter = filter;
-            
-            // Update filter buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            updateDisplay();
-        }
+    currentFilter = filter;
+
+    // Remove active from all
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Add active to the clicked one
+    const clickedButton = Array.from(document.querySelectorAll('.filter-btn')).find(btn => 
+        btn.textContent.toLowerCase().includes(filter.replace('week', 'this week'))
+    );
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+    }
+
+    updateDisplay();
+}
+
 
         // Get filtered transactions
         function getFilteredTransactions() {
-    const today = new Date().toISOString().split('T')[0];
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const allTransactions = [];
 
-    if (currentFilter.startsWith('date:')) {
-        const date = currentFilter.split(':')[1];
-        return transactions.filter(t => t.date === date);
+    // Collect ALL transactions from all dates
+    for (const [date, data] of Object.entries(allData)) {
+        if (Array.isArray(data.transactions)) {
+            for (const t of data.transactions) {
+                allTransactions.push({ ...t, date }); // ensure date is included
+            }
+        }
     }
 
-    switch(currentFilter) {
-        case 'today': return transactions.filter(t => t.date === today);
-        case 'week': return transactions.filter(t => t.date >= weekAgo);
-        default: return transactions;
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - 6);
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+
+    switch (currentFilter) {
+        case 'today':
+            return allTransactions.filter(t => t.date === todayStr);
+        case 'yesterday':
+            return allTransactions.filter(t => t.date === yesterdayStr);
+        case 'week':
+            return allTransactions.filter(t => t.date >= weekStartStr && t.date <= todayStr);
+        case 'all':
+        default:
+            return allTransactions;
     }
 }
+
+
 
 
 
