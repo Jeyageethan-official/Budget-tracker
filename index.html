@@ -646,39 +646,6 @@ body.modal-open {
   cursor: pointer;
 }
 
-.filters {
-  display: flex;
-  justify-content: start;      /* Start from left, looks clean */
-  gap: 10px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: 10px 0;
-  margin: 0 10px;
-  -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
-}
-
-.filters::-webkit-scrollbar {
-  display: none; /* Hide scrollbar in Chrome/Safari */
-}
-
-.filter-btn {
-  flex: 0 0 auto;
-  white-space: nowrap;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background: #333;
-  color: white;
-  border: 1px solid #666;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.filter-btn.active {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-}
 
 
 
@@ -979,7 +946,7 @@ function setDate(dateString) {
     selectedDate = dateString;
 
     // Load data for new date
-    
+    transactions = allData[selectedDate]?.transactions || [];
     dailyBudget = allData[selectedDate]?.dailyBudget || 0;
 
     // Sync all date inputs
@@ -1456,41 +1423,25 @@ let currentFilter = 'all';
 
         // Get filtered transactions
         function getFilteredTransactions() {
-    const allTransactions = [];
+    const today = new Date().toISOString().split('T')[0];
 
-    // Collect ALL transactions from all dates
-    for (const [date, data] of Object.entries(allData)) {
-        if (Array.isArray(data.transactions)) {
-            for (const t of data.transactions) {
-                allTransactions.push({ ...t, date }); // ensure date is included
-            }
-        }
-    }
+    const yesterdayDate = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+        .toISOString().split('T')[0];
 
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - 6);
-    const weekStartStr = weekStart.toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+        .toISOString().split('T')[0];
 
     switch (currentFilter) {
         case 'today':
-            return allTransactions.filter(t => t.date === todayStr);
+            return transactions.filter(t => t.date === today);
         case 'yesterday':
-            return allTransactions.filter(t => t.date === yesterdayStr);
+            return transactions.filter(t => t.date === yesterdayDate);
         case 'week':
-            return allTransactions.filter(t => t.date >= weekStartStr && t.date <= todayStr);
-        case 'all':
+            return transactions.filter(t => t.date >= weekAgo && t.date <= today);
         default:
-            return allTransactions;
+            return transactions;
     }
 }
-
 
 
 
