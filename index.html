@@ -1578,14 +1578,29 @@ let currentFilter = 'all';
                 </h4>
                 ${group.transactions.map(transaction => `
                     <div class="transaction ${transaction.description.toLowerCase().includes('over budget') ? 'over-budget' : ''}" data-id="${transaction.id}">
-    <div class="transaction-details">
-        <div class="transaction-description">${transaction.description}</div>
-        <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
-    </div>
+  <div class="transaction-details">
+    <div class="transaction-description">${transaction.description}</div>
+    <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
+  </div>
 
-    <div class="transaction-amount ${transaction.type} ${transaction.description.toLowerCase().includes('over budget') ? 'over-budget' : ''}">
-        ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+  <div class="transaction-amount ${transaction.type} ${transaction.description.toLowerCase().includes('over budget') ? 'over-budget' : ''}">
+    ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
+  </div>
+
+  <button class="transaction-delete-btn" onclick="deleteTransaction(${transaction.id})">
+    <svg viewBox="0 0 24 24">
+      <path d="M9 3v1H4v2h16V4h-5V3H9zm-2 5v12a1 1 0 001 1h8a1 1 0 001-1V8H7zm2 2h2v8H9v-8zm4 0h2v8h-2v-8z"/>
+    </svg>
+  </button>
+
+  ${transaction.description.toLowerCase().includes('over budget') ? `
+    <div style="position: absolute; bottom: 4px; right: 4px;">
+      <input type="checkbox" onchange="toggleOverBudgetCheck(${transaction.id})"
+        ${checkedOverBudgetIds.includes(transaction.id) ? 'checked' : ''}>
     </div>
+  ` : ''}
+</div>
+
 
     <button class="transaction-delete-btn" onclick="deleteTransaction(${transaction.id})">
   <svg viewBox="0 0 24 24">
@@ -1961,23 +1976,29 @@ window.firstTimeBudgetSet = true;
 
 
 function toggleOverBudgetCheck(id) {
-    const idx = checkedOverBudgetIds.indexOf(id);
-    if (idx === -1) {
-        checkedOverBudgetIds.push(id);
-    } else {
-        checkedOverBudgetIds.splice(idx, 1);
-    }
-    localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
-    
-    // Recalculate adjustment
-    const checkedOverBudgetAmount = transactions.filter(
-        t => t.type === 'expense' &&
-             t.description.toLowerCase().includes('(over budget)') &&
-             checkedOverBudgetIds.includes(t.id)
-    ).reduce((sum, t) => sum + t.amount, 0);
-    
-    adjustOverBudget = checkedOverBudgetAmount;
-    updateDisplay();
+  const idx = checkedOverBudgetIds.indexOf(id);
+
+  if (idx === -1) {
+    // Checkbox now ticked → do NOT add back over-budget
+    checkedOverBudgetIds.push(id);
+  } else {
+    // Checkbox now unticked → ADD this over-budget amount back
+    checkedOverBudgetIds.splice(idx, 1);
+  }
+
+  // Only UNCHECKED over-budget values are added back
+  const addBackAmount = transactions
+    .filter(t =>
+      t.type === 'expense' &&
+      t.description.toLowerCase().includes('(over budget)') &&
+      !checkedOverBudgetIds.includes(t.id)  // ✅ only UNCHECKED ones
+    )
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  adjustOverBudget = addBackAmount;
+
+  localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
+  updateDisplay();
 }
 
 
