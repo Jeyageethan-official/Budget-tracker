@@ -962,7 +962,8 @@ function setDate(dateString) {
 
 // Automatically load today
 window.addEventListener('load', () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
+
     setDate(today); // Default to today
     document.getElementById('historyDatePicker').value = today;
 });
@@ -1150,7 +1151,8 @@ window.onload = function() {
     }
     
     // Initialize date pickers
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
+
     setDate(today);
     document.getElementById('historyDatePicker').value = today;
     
@@ -1190,7 +1192,8 @@ function setupLongPress() {
 
 
 function updateQuickStats() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
+
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -1253,7 +1256,7 @@ let currentFilter = 'all';
     dailyBudget = newBudget;
 
     // Get today's date
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
 
     // Collect today's expenses
     const todayExpenses = transactions.filter(t => t.type === 'expense' && t.date === today);
@@ -1310,7 +1313,7 @@ let currentFilter = 'all';
   }
 
   const now = new Date();
-  const date = now.toISOString().split('T')[0];
+  const date = new Date().toLocaleDateString('en-CA');
   const time = now.toLocaleTimeString();
 
   transactions.push({
@@ -1431,7 +1434,8 @@ let currentFilter = 'all';
 
         // Get filtered transactions
         function getFilteredTransactions() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
+
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     if (currentFilter.startsWith('date:')) {
@@ -1764,7 +1768,8 @@ function clearAllData() {
             remaining: 0,
             checkedOverBudgetIds: [],
             adjustOverBudget: 0,
-            selectedDate: new Date().toISOString().split('T')[0]
+            selectedDate: new Date().toLocaleDateString('en-CA')
+
         }));
         
         localStorage.setItem('allBudgetData', JSON.stringify({}));
