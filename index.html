@@ -675,6 +675,26 @@ body.modal-open {
   fill: white;
 }
 
+.transaction.over-budget {
+  background-color: rgba(0, 191, 255, 0.12) !important;
+  border-left: 5px solid #00bfff;
+}
+
+.transaction-amount.over-budget {
+  color: #00bfff !important;
+  font-weight: bold;
+}
+
+.transaction.over-budget {
+  background-color: rgba(0, 191, 255, 0.12) !important;
+  border-left: 5px solid #00bfff;
+}
+
+.transaction-amount.over-budget {
+  color: #00bfff !important;
+  font-weight: bold;
+}
+
 
 
 
@@ -1557,13 +1577,13 @@ let currentFilter = 'all';
                     📅 ${new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </h4>
                 ${group.transactions.map(transaction => `
-                    <div class="transaction" data-id="${transaction.id}">
+                    <div class="transaction ${transaction.description.toLowerCase().includes('over budget') ? 'over-budget' : ''}" data-id="${transaction.id}">
     <div class="transaction-details">
         <div class="transaction-description">${transaction.description}</div>
         <div class="transaction-info">${transaction.category} • ${transaction.time}</div>
     </div>
 
-    <div class="transaction-amount ${transaction.type}">
+    <div class="transaction-amount ${transaction.type} ${transaction.description.toLowerCase().includes('over budget') ? 'over-budget' : ''}">
         ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)} LKR
     </div>
 
