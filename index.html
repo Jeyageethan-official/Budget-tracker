@@ -1486,7 +1486,7 @@ let currentFilter = 'all';
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const balance = totalIncome - totalExpense;
-    
+
     // Update balance display
     const balanceEl = document.getElementById('balance');
     balanceEl.textContent = `${balance.toFixed(2)} LKR`;
@@ -1495,28 +1495,28 @@ let currentFilter = 'all';
     // Update totals
     document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
     document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
-    
-    const todayDate = new Date().toISOString().split('T')[0];
-    const todayOnlyExpenses = transactions
-        .filter(t => t.type === 'expense' && t.date === todayDate)
+
+    // ✅ FIXED: Use selectedDate instead of today
+    const selectedOnlyExpenses = transactions
+        .filter(t => t.type === 'expense' && t.date === selectedDate)
         .reduce((sum, t) => sum + t.amount, 0);
 
-    const remaining = dailyBudget - todayOnlyExpenses + adjustOverBudget;
+    const remaining = dailyBudget - selectedOnlyExpenses + adjustOverBudget;
     document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
 
     // Update budget display
     document.getElementById('totalBudget').textContent = `${dailyBudget.toFixed(2)} LKR`;
-    
-    // Update budget progress
-    const todayExpenses = transactions.filter(t => t.type === 'expense' && t.date === todayDate)
+
+    // ✅ FIXED: Progress bar also uses selectedDate
+    const selectedDateExpenses = transactions.filter(t => t.type === 'expense' && t.date === selectedDate)
         .reduce((sum, t) => sum + t.amount, 0);
-    const budgetProgress = dailyBudget > 0 ? (todayExpenses / dailyBudget) * 100 : 0;
+    const budgetProgress = dailyBudget > 0 ? (selectedDateExpenses / dailyBudget) * 100 : 0;
     document.getElementById('budgetProgress').style.width = `${Math.min(budgetProgress, 100)}%`;
 
-    // Update transactions list
+    // Update transaction list
     updateTransactionsList();
-    
-    // Save complete state to localStorage
+
+    // Save complete state
     const appState = {
         transactions,
         dailyBudget,
@@ -1528,11 +1528,12 @@ let currentFilter = 'all';
         adjustOverBudget,
         selectedDate
     };
-    
+
     localStorage.setItem('budgetAppState', JSON.stringify(appState));
     allData[selectedDate] = { transactions, dailyBudget };
     localStorage.setItem('allBudgetData', JSON.stringify(allData));
 }
+
         
 
         // Update transactions list
