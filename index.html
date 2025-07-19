@@ -884,8 +884,10 @@ body.modal-open {
             <div class="filters">
                 <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
                 <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
+                <button class="filter-btn" onclick="filterTransactions('yesterday')">Yesterday</button>
                 <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
             </div>
+            
 
             <div class="transactions" id="transactionsList">
                 <p style="text-align: center; color: #666; padding: 20px;">No transactions yet. Add your first transaction above!</p>
@@ -1359,6 +1361,8 @@ let selectedDate = new Date().toISOString().split('T')[0];
 let transactions = allData[selectedDate]?.transactions || [];
 let dailyBudget = allData[selectedDate]?.dailyBudget || 0;
 let currentFilter = 'all';
+let budgetSetCount = 0; // ✅ Count how many times budget is set
+
 
         
         
@@ -1367,6 +1371,8 @@ let currentFilter = 'all';
         function setBudget() {
     const budgetInput = document.getElementById('budgetInput');
     const newBudget = parseFloat(budgetInput.value);
+    budgetSetCount++; // ✅ Increase count every time user sets budget
+
 
     if (isNaN(newBudget) || newBudget <= 0) {
         alert("Enter a valid amount.");
@@ -1492,44 +1498,25 @@ let currentFilter = 'all';
   const now = new Date();
   const date = selectedDate;
   const time = now.toLocaleTimeString();
-
-  const remaining = dailyBudget - transactions
-    .filter(t => t.type === 'expense' && t.date === date)
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const finalDescription = description;
   const finalCategory = 'Other';
 
-  if (amount <= remaining) {
+  // ✅ Total expenses for today
+  const todayExpenses = transactions
+    .filter(t => t.type === 'expense' && t.date === selectedDate)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // ✅ Remaining = budget - todayExpenses + ticked over-budget amounts
+  const remaining = dailyBudget - todayExpenses + adjustOverBudget;
+
+  // ✅ Split logic
+  const withinBudget = Math.max(0, Math.min(amount, remaining));
+  const overBudgetPart = amount - withinBudget;
+
+  if (withinBudget > 0) {
     transactions.push({
       id: Date.now(),
-      description: finalDescription + ' (within budget)',
-      amount,
-      category: finalCategory,
-      type: 'expense',
-      date,
-      time
-    });
-  } else {
-    const firstPart = remaining > 0 ? remaining : 0;
-    const secondPart = amount - firstPart;
-
-    if (firstPart > 0) {
-      transactions.push({
-        id: Date.now(),
-        description: finalDescription + ' (within budget)',
-        amount: firstPart,
-        category: finalCategory,
-        type: 'expense',
-        date,
-        time
-      });
-    }
-
-    transactions.push({
-      id: Date.now() + 1,
-      description: finalDescription + ' (over budget)',
-      amount: secondPart,
+      description: description + ' (within budget)',
+      amount: withinBudget,
       category: finalCategory,
       type: 'expense',
       date,
@@ -1537,6 +1524,19 @@ let currentFilter = 'all';
     });
   }
 
+  if (overBudgetPart > 0) {
+    transactions.push({
+      id: Date.now() + 1,
+      description: description + ' (over budget)',
+      amount: overBudgetPart,
+      category: finalCategory,
+      type: 'expense',
+      date,
+      time
+    });
+  }
+
+  // ✅ Clean up
   document.getElementById('quickExpenseAmount').value = '';
   document.getElementById('quickExpenseDesc').value = '';
   closeModal('quickExpenseModal');
@@ -1545,6 +1545,8 @@ let currentFilter = 'all';
   localStorage.setItem('allBudgetData', JSON.stringify(allData));
   updateDisplay();
 }
+
+
 
 
 
@@ -1569,34 +1571,59 @@ let currentFilter = 'all';
 
         // Filter transactions
         function filterTransactions(filter) {
-            currentFilter = filter;
-            
-            // Update filter buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            updateDisplay();
+    currentFilter = filter;
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase().includes(filter.replace('-', ' '))) {
+            btn.classList.add('active');
         }
+    });
+
+    updateDisplay();
+}
+
 
         // Get filtered transactions
         function getFilteredTransactions() {
-    const today = new Date().toLocaleDateString('en-CA');
+    const allTransactions = Object.values(allData)
+        .flatMap(entry => entry.transactions || []);
 
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
 
-    if (currentFilter.startsWith('date:')) {
-        const date = currentFilter.split(':')[1];
-        return transactions.filter(t => t.date === date);
-    }
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-    switch(currentFilter) {
-        case 'today': return transactions.filter(t => t.date === today);
-        case 'week': return transactions.filter(t => t.date >= weekAgo);
-        default: return transactions;
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - 6); // 7 days total including today
+
+    switch (currentFilter) {
+        case 'today':
+            return allTransactions.filter(t => t.date === todayStr);
+        case 'yesterday':
+            return allTransactions.filter(t => t.date === yesterdayStr);
+        case 'week':
+            return allTransactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate >= weekStart && tDate <= today;
+            });
+        case 'all':
+        default:
+            return allTransactions;
     }
 }
+
+function filterTransactions(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    updateDisplay();
+}
+
+
+
 
 
 
@@ -1620,7 +1647,19 @@ let currentFilter = 'all';
         .filter(t => t.type === 'expense' && t.date === selectedDate)
         .reduce((sum, t) => sum + t.amount, 0);
 
-    const remaining = dailyBudget - selectedOnlyExpenses + adjustOverBudget;
+        let overBudgetUncheckedSum = transactions
+    .filter(t => t.type === 'expense' &&
+                 t.description.toLowerCase().includes('(over budget)') &&
+                 !checkedOverBudgetIds.includes(t.id))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+// ✅ Proper calculation: only add back unchecked over-budget amounts if the original over-budget transaction was from a previous budget limit.
+let remaining = dailyBudget - selectedOnlyExpenses + adjustOverBudget;
+
+
+
+
+
     document.getElementById('remainingBudget').textContent = remaining.toFixed(2);
 
     // Update budget display
@@ -2077,27 +2116,27 @@ function toggleOverBudgetCheck(id) {
   const idx = checkedOverBudgetIds.indexOf(id);
 
   if (idx === -1) {
-    // Checkbox now ticked → do NOT add back over-budget
+    // ✅ Tick: ADD to checked list
     checkedOverBudgetIds.push(id);
   } else {
-    // Checkbox now unticked → ADD this over-budget amount back
+    // ❌ Untick: REMOVE from checked list
     checkedOverBudgetIds.splice(idx, 1);
   }
 
-  // Only UNCHECKED over-budget values are added back
-  const addBackAmount = transactions
+  // ✅ Update total checked-over-budget amount
+  adjustOverBudget = transactions
     .filter(t =>
       t.type === 'expense' &&
       t.description.toLowerCase().includes('(over budget)') &&
-      !checkedOverBudgetIds.includes(t.id)  // ✅ only UNCHECKED ones
+      checkedOverBudgetIds.includes(t.id)
     )
     .reduce((sum, t) => sum + t.amount, 0);
-
-  adjustOverBudget = addBackAmount;
 
   localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
   updateDisplay();
 }
+
+
 
 
     </script>
