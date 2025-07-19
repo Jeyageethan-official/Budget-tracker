@@ -695,6 +695,30 @@ body.modal-open {
   font-weight: bold;
 }
 
+.mini-delete-btn {
+  width: 30px;
+  height: 30px;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease;
+}
+
+.mini-delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.trash-icon {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
 
 
 
@@ -1223,26 +1247,46 @@ function addListItem() {
     saveBuyingList();
 }
 
+function deleteLastItem() {
+  if (buyingItems.length === 0) {
+    alert("No item to delete!");
+    return;
+  }
+
+  buyingItems.pop();
+  saveBuyingList();
+  renderBuyingList();
+}
+
+
 
 function renderBuyingList() {
-    const listEl = document.getElementById('buyingList');
-    if (buyingItems.length === 0) {
-        listEl.innerHTML = '<p style="color: #aaa;">No items yet.</p>';
-        return;
-    }
+  const listEl = document.getElementById('buyingList');
 
-    listEl.innerHTML = buyingItems.map((item, index) => `
-        <li style="margin: 12px 0;">
-            <span style="
-                font-weight: bold;
-                font-size: 18px;
-                color: white;
-                display: inline-block;">
-                ${item.text} <span style="font-size: 16px; color: #ccc;">(${item.unit})</span>
-            </span>
-        </li>
-    `).join('');
+  if (buyingItems.length === 0) {
+    listEl.innerHTML = '<p style="color: #aaa;">No items yet.</p>';
+    return;
+  }
+
+  listEl.innerHTML = buyingItems.map((item, index) => {
+    const isLast = index === buyingItems.length - 1;
+    return `
+      <li style="margin: 12px 0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: bold; font-size: 18px; color: white;">
+          ${item.text} <span style="font-size: 16px; color: #ccc;">(${item.unit})</span>
+        </span>
+        ${isLast ? `
+          <button class="mini-delete-btn" onclick="deleteLastItem()" title="Delete">
+            <svg class="trash-icon" viewBox="0 0 24 24">
+              <path fill="white" d="M9 3v1H4v2h16V4h-5V3H9zm-2 5v12a1 1 0 001 1h8a1 1 0 001-1V8H7zm2 2h2v8H9v-8zm4 0h2v8h-2v-8z"/>
+            </svg>
+          </button>` : ''}
+      </li>
+    `;
+  }).join('');
 }
+
+
 
 
 
