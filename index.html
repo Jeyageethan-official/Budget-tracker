@@ -1051,23 +1051,7 @@ body.modal-open {
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-      
-        const firebaseConfig = {
-          apiKey: "AIzaSyBZ2zrUktE88FT_4SwNWq6tIfN6u_pU1KU",
-          authDomain: "budget-tracker-87bee.firebaseapp.com",
-          databaseURL: "https://budget-tracker-87bee-default-rtdb.firebaseio.com",
-          projectId: "budget-tracker-87bee",
-          storageBucket: "budget-tracker-87bee.appspot.com",
-          messagingSenderId: "179689936635",
-          appId: "1:179689936635:web:f015bee1ca87393da9c25e"
-        };
-      
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-      
+    <script>
       
 
 function addTransaction() {
@@ -2215,6 +2199,23 @@ function toggleOverBudgetCheck(id) {
   localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
   updateDisplay();
 }
+
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBZ2zrUktE88FT_4SwNWq6tIfN6u_pU1KU",
+    authDomain: "budget-tracker-87bee.firebaseapp.com",
+    databaseURL: "https://budget-tracker-87bee-default-rtdb.firebaseio.com",
+    projectId: "budget-tracker-87bee",
+    storageBucket: "budget-tracker-87bee.appspot.com",
+    messagingSenderId: "179689936635",
+    appId: "1:179689936635:web:f015bee1ca87393da9c25e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
 
     </script>
