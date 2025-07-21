@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
 
 
 
@@ -1083,7 +1082,11 @@ function addTransaction() {
 
   // Save to correct date bucket
   allData[selectedDate] = { transactions, dailyBudget };
-  ref(dp,'budgetData/sharedUser').set(allData);
+  set(ref(db, 'budgetData/sharedUser'), allData);
+
+
+ 
+
 
 
   // Clear inputs
@@ -1344,8 +1347,9 @@ window.onload = function() {
             selectedDate = state.selectedDate || new Date().toISOString().split('T')[0];
             
             // Also load the allData structure
-            ref(dp,'budgetData/sharedUser').on('value', (snapshot) => {
-    allData = snapshot.val() || {};
+            onValue(ref(db, 'budgetData/sharedUser'), (snapshot) => {
+
+                allData = snapshot.val() || {};
     transactions = allData[selectedDate]?.transactions || [];
     dailyBudget = allData[selectedDate]?.dailyBudget || 0;
     updateDisplay();
@@ -2217,6 +2221,29 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  window.db = db;
+  window.ref = ref;
+  window.set = set;
+  window.onValue = onValue;
+
+  function saveToFirebase(allData) {
+    set(ref(db, 'budgetData/sharedUser'), allData);
+  }
+
+  // Load from Firebase
+  function loadFromFirebase(callback) {
+    onValue(ref(db, 'budgetData/sharedUser'), (snapshot) => {
+      if (snapshot.exists()) {
+        callback(snapshot.val());
+      } else {
+        callback(null);
+      }
+    });
+  }
+
+  // You can now call saveToFirebase(...) and loadFromFirebase(...)
+  window.saveToFirebase = saveToFirebase;
+  window.loadFromFirebase = loadFromFirebase;
 
     </script>
     
