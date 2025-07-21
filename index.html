@@ -5,9 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
-
-
 
     <title>Daily Budget Tracker</title>
     <style>
@@ -1051,7 +1048,6 @@ body.modal-open {
     </div>
 
     <script>
-      
 
 function addTransaction() {
   const description = document.getElementById('description').value.trim();
@@ -1082,12 +1078,7 @@ function addTransaction() {
 
   // Save to correct date bucket
   allData[selectedDate] = { transactions, dailyBudget };
-  set(ref(db, 'budgetData/sharedUser'), allData);
-
-
- 
-
-
+  localStorage.setItem('allBudgetData', JSON.stringify(allData));
 
   // Clear inputs
   document.getElementById('description').value = '';
@@ -1347,14 +1338,7 @@ window.onload = function() {
             selectedDate = state.selectedDate || new Date().toISOString().split('T')[0];
             
             // Also load the allData structure
-            onValue(ref(db, 'budgetData/sharedUser'), (snapshot) => {
-
-                allData = snapshot.val() || {};
-    transactions = allData[selectedDate]?.transactions || [];
-    dailyBudget = allData[selectedDate]?.dailyBudget || 0;
-    updateDisplay();
-});
-
+            const savedAllData = localStorage.getItem('allBudgetData');
             if (savedAllData) {
                 allData = JSON.parse(savedAllData);
             }
@@ -2205,45 +2189,7 @@ function toggleOverBudgetCheck(id) {
 }
 
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBZ2zrUktE88FT_4SwNWq6tIfN6u_pU1KU",
-    authDomain: "budget-tracker-87bee.firebaseapp.com",
-    databaseURL: "https://budget-tracker-87bee-default-rtdb.firebaseio.com",
-    projectId: "budget-tracker-87bee",
-    storageBucket: "budget-tracker-87bee.appspot.com",
-    messagingSenderId: "179689936635",
-    appId: "1:179689936635:web:f015bee1ca87393da9c25e"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  window.db = db;
-  window.ref = ref;
-  window.set = set;
-  window.onValue = onValue;
-
-  function saveToFirebase(allData) {
-    set(ref(db, 'budgetData/sharedUser'), allData);
-  }
-
-  // Load from Firebase
-  function loadFromFirebase(callback) {
-    onValue(ref(db, 'budgetData/sharedUser'), (snapshot) => {
-      if (snapshot.exists()) {
-        callback(snapshot.val());
-      } else {
-        callback(null);
-      }
-    });
-  }
-
-  // You can now call saveToFirebase(...) and loadFromFirebase(...)
-  window.saveToFirebase = saveToFirebase;
-  window.loadFromFirebase = loadFromFirebase;
 
     </script>
     
