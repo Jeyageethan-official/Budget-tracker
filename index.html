@@ -747,6 +747,15 @@ body.modal-open {
 }
 
 
+.budget-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+
     </style>
 </head>
 <body>
@@ -848,12 +857,12 @@ body.modal-open {
                     <input type="number" id="budgetInput" placeholder="Enter daily budget in LKR">
                 </div>
                 <button class="btn success" onclick="setBudget()">Set Budget</button>
-                <button class="btn danger" onclick="clearBudget()">Clear Budget</button>
-                <button class="undo-budget-btn" onclick="undoLastBudget()" title="Undo Last Budget">
-                    <svg viewBox="0 0 24 24" class="undo-icon">
-                      <path fill="white" d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 .34-.03.67-.08 1h2.02c.04-.33.06-.66.06-1 0-4.97-4.03-9-9-9z"/>
-                    </svg>
-                  </button>
+  <button class="btn danger" onclick="clearBudget()">Clear Budget</button>
+  <button class="undo-budget-btn" onclick="undoLastBudget()" title="Undo Last Budget">
+    <svg viewBox="0 0 24 24" class="undo-icon">
+      <path fill="white" d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 .34-.03.67-.08 1h2.02c.04-.33.06-.66.06-1 0-4.97-4.03-9-9-9z"/>
+    </svg>
+  </button>
                   
 
 
