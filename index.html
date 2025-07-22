@@ -754,6 +754,40 @@ body.modal-open {
   height: 20px;
   pointer-events: none;
 }
+.filter-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 15px;
+}
+
+.filter-scroll-row {
+  display: inline-flex;
+  gap: 10px;
+  padding: 10px 0;
+  min-width: max-content;
+}
+
+.filter-scroll-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar */
+}
+
+.filter-btn {
+  white-space: nowrap;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 20px;
+  border: 2px solid #667eea;
+  background: #1e1e1e;
+  color: #d1d1d1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+  background: #667eea;
+  color: white;
+}
 
 
     </style>
@@ -949,12 +983,15 @@ body.modal-open {
             
             
             
-            <div class="filters">
-                <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
-                <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
-                <button class="filter-btn" onclick="filterTransactions('yesterday')">Yesterday</button>
-                <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
-            </div>
+            <div class="filter-scroll-container">
+                <div class="filter-scroll-row">
+                  <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
+                  <button class="filter-btn" onclick="filterTransactions('today')">Today</button>
+                  <button class="filter-btn" onclick="filterTransactions('yesterday')">Yesterday</button>
+                  <button class="filter-btn" onclick="filterTransactions('week')">This Week</button>
+                </div>
+              </div>
+              
             
 
             <div class="transactions" id="transactionsList">
