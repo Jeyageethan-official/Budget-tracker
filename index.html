@@ -720,39 +720,39 @@ body.modal-open {
   pointer-events: none;
 }
 
-.undo-budget-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+.budget-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+.undo-circle {
+  width: 44px;
+  height: 44px;
   background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-radius: 50%;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin-left: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  flex-shrink: 0; /* important to prevent wrapping */
 }
 
-.undo-budget-btn:hover {
+.undo-circle:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
 }
 
 .undo-icon {
   width: 20px;
   height: 20px;
   pointer-events: none;
-}
-
-
-.budget-buttons-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  flex-wrap: wrap;
 }
 
 
@@ -856,13 +856,16 @@ body.modal-open {
                     <label>Set Daily Budget</label>
                     <input type="number" id="budgetInput" placeholder="Enter daily budget in LKR">
                 </div>
-                <button class="btn success" onclick="setBudget()">Set Budget</button>
-  <button class="btn danger" onclick="clearBudget()">Clear Budget</button>
-  <button class="undo-budget-btn" onclick="undoLastBudget()" title="Undo Last Budget">
-    <svg viewBox="0 0 24 24" class="undo-icon">
-      <path fill="white" d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 .34-.03.67-.08 1h2.02c.04-.33.06-.66.06-1 0-4.97-4.03-9-9-9z"/>
-    </svg>
-  </button>
+                <div class="budget-buttons-row">
+                    <button class="btn success" onclick="setBudget()">Set Budget</button>
+                    <button class="btn danger" onclick="clearBudget()">Clear Budget</button>
+                    <button class="btn undo-circle" onclick="undoLastBudget()" title="Undo Last Budget">
+                      <svg viewBox="0 0 24 24" class="undo-icon">
+                        <path fill="white" d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 .34-.03.67-.08 1h2.02c.04-.33.06-.66.06-1 0-4.97-4.03-9-9-9z"/>
+                      </svg>
+                    </button>
+                  </div>
+                  
                   
 
 
