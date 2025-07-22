@@ -720,6 +720,31 @@ body.modal-open {
   pointer-events: none;
 }
 
+.undo-budget-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.undo-budget-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+.undo-icon {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
 
 
     </style>
@@ -824,6 +849,13 @@ body.modal-open {
                 </div>
                 <button class="btn success" onclick="setBudget()">Set Budget</button>
                 <button class="btn danger" onclick="clearBudget()">Clear Budget</button>
+                <button class="undo-budget-btn" onclick="undoLastBudget()" title="Undo Last Budget">
+                    <svg viewBox="0 0 24 24" class="undo-icon">
+                      <path fill="white" d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 .34-.03.67-.08 1h2.02c.04-.33.06-.66.06-1 0-4.97-4.03-9-9-9z"/>
+                    </svg>
+                  </button>
+                  
+
 
             </div>
             
@@ -1434,6 +1466,11 @@ let budgetSetCount = 0; // ✅ Count how many times budget is set
     // ADD to existing daily budget (not replace)
     dailyBudget += newBudget;
 
+// ✅ Track history of budgets
+const history = JSON.parse(localStorage.getItem('budgetHistory') || '[]');
+history.push(newBudget);
+localStorage.setItem('budgetHistory', JSON.stringify(history));
+
     // Calculate adjustment from checked over-budget items
     const checkedOverBudgetAmount = transactions.filter(
         t => t.type === 'expense' &&
@@ -1446,7 +1483,33 @@ let budgetSetCount = 0; // ✅ Count how many times budget is set
     budgetInput.value = '';
     localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
     updateDisplay();
+    
 }
+// 🔙 Undo the most recent budget addition
+function undoLastBudget() {
+    const history = JSON.parse(localStorage.getItem('budgetHistory') || '[]');
+
+    if (history.length === 0) {
+        alert("No previous budget to remove.");
+        return;
+    }
+
+    const lastAmount = history[history.length - 1]; // Just peek for confirmation
+
+    const confirmRemove = confirm(`Are you sure you want to remove the last budget amount of ${lastAmount.toFixed(2)} LKR?`);
+    if (!confirmRemove) return;
+
+    // Proceed to remove
+    history.pop();
+    dailyBudget -= lastAmount;
+    if (dailyBudget < 0) dailyBudget = 0;
+
+    localStorage.setItem('budgetHistory', JSON.stringify(history));
+    localStorage.setItem('budgetData', JSON.stringify({ transactions, dailyBudget }));
+    updateDisplay();
+}
+
+
 
 
 
