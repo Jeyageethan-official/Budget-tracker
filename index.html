@@ -777,7 +777,7 @@ body.modal-open {
   font-size: 14px;
   font-weight: 500;
   border-radius: 20px;
-  border: 2px solid #667eea;
+  border: 2px solid #1559b3;
   background: #1e1e1e;
   color: #d1d1d1;
   cursor: pointer;
@@ -794,144 +794,163 @@ body.modal-open {
 
 /* New design */
 
-
-/* 💎 Font & Body Styling */
+/* 🌑 Base Font & Body Setup */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
-body {
-    font-family: 'Inter', sans-serif !important;
-    background: linear-gradient(135deg, #0a0a0f, #0e0e14) fixed;
-    color: #e0f4ff !important;
-    transition: background 0.5s ease;
-}
-
-/* 🌊 Primary Blue Shade */
 :root {
-    --primary-blue: #4B9CD3;
+  --primary-blue: #0f5cae;
+  --undo-red: #e74c3c;
 }
 
-/* 🔷 Buttons */
-.btn {
-    background: linear-gradient(to right, var(--primary-blue), #276d9e) !important;
-    color: white !important;
-    border: none !important;
-    box-shadow: 0 4px 20px rgba(75, 156, 211, 0.3);
-    transition: all 0.3s ease;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(75, 156, 211, 0.5);
+body {
+  font-family: 'Inter', sans-serif !important;
+  background: linear-gradient(to bottom, #050505, #0e0e0e) fixed;
+  color: #e3f2fd;
+  touch-action: manipulation;
+  transition: background 0.3s ease;
 }
 
-/* 💠 Cards */
-.card {
-    background: rgba(10, 20, 30, 0.6) !important;
-    border-radius: 16px;
-    backdrop-filter: blur(16px);
-    box-shadow: inset 0 0 10px rgba(255,255,255,0.03),
-                0 6px 20px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    animation: cardFadeIn 0.4s ease;
+/* 🔷 All Buttons Except Undo */
+.btn:not(.undo-circle):not(.transaction-delete-btn):not(.mini-delete-btn) {
+  background: linear-gradient(to right, var(--primary-blue), #063b7b);
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(15, 92, 174, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
-@keyframes cardFadeIn {
-    0% { opacity: 0; transform: translateY(10px); }
-    100% { opacity: 1; transform: translateY(0); }
+.btn:not(.undo-circle):hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 22px rgba(15, 92, 174, 0.5);
+}
+.btn:not(.undo-circle):active {
+  transform: scale(0.96);
 }
 
-/* 📋 Transaction Animation */
+/* 📋 Transaction Container */
 .transaction {
-    background: rgba(255, 255, 255, 0.04) !important;
-    border-left: 4px solid var(--primary-blue) !important;
-    transition: all 0.3s ease, transform 0.3s ease;
-    animation: fadeInUp 0.4s ease;
+  background: rgba(255, 255, 255, 0.035);
+  border-left: 4px solid var(--primary-blue);
+  transition: background 0.25s ease, transform 0.2s ease;
+  animation: fadeTransaction 0.4s ease;
 }
 .transaction:hover {
-    transform: translateX(6px);
-    background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(6px);
 }
-@keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(15px); }
-    100% { opacity: 1; transform: translateY(0); }
+@keyframes fadeTransaction {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-/* 🌀 Floating Button */
+/* 💠 Glassy Card Layout */
+.card {
+  background: rgba(15, 20, 30, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+  animation: fadeCard 0.35s ease;
+}
+@keyframes fadeCard {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🔘 Floating Action Button */
 .floating-action-btn {
-    background: linear-gradient(to right, var(--primary-blue), #276d9e);
-    box-shadow: 0 4px 15px rgba(75, 156, 211, 0.4);
+  background: linear-gradient(to right, var(--primary-blue), #063b7b);
+  box-shadow: 0 4px 16px rgba(15, 92, 174, 0.4);
+  transition: transform 0.2s ease;
 }
 .floating-action-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(75, 156, 211, 0.5);
+  transform: scale(1.08);
+}
+.floating-action-btn:active {
+  transform: scale(0.94);
 }
 
-/* 🧊 Inputs & Selects */
+/* 🧊 Inputs */
 .input-group input,
 .input-group select {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #e0f4ff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: border 0.3s, box-shadow 0.3s;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbe4ff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 .input-group input:focus,
 .input-group select:focus {
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(75, 156, 211, 0.2);
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(15, 92, 174, 0.3);
 }
 
-/* 📊 Stat Cards */
+/* 📊 Stats Card */
 .stat-card {
-    background: linear-gradient(145deg, #1a2c3d, #20384e);
-    color: white;
-    box-shadow: 0 6px 20px rgba(75, 156, 211, 0.2);
+  background: linear-gradient(135deg, #112c44, #174471);
+  color: white;
+  box-shadow: 0 4px 18px rgba(15, 92, 174, 0.2);
 }
 
-/* 🎯 Filter Buttons */
-.filter-btn.active {
-    background: var(--primary-blue) !important;
-    color: white !important;
-    box-shadow: 0 0 6px rgba(75, 156, 211, 0.4);
-}
-
-/* 🧨 Modal Transitions */
+/* 📦 Modal */
 .modal-content {
-    background: rgba(20, 30, 40, 0.95) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    animation: scaleFadeIn 0.4s ease;
+  background: rgba(20, 30, 40, 0.92);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 22px 65px rgba(0, 0, 0, 0.6);
+  animation: modalFade 0.3s ease;
 }
-@keyframes scaleFadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* 🧨 Transaction Over-budget Tag */
-.transaction.over-budget {
-    background-color: rgba(75, 156, 211, 0.1) !important;
-    border-left: 4px solid var(--primary-blue);
-}
-.transaction-amount.over-budget {
-    color: var(--primary-blue) !important;
+@keyframes modalFade {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-/* ❌ Delete / Undo Buttons */
-.undo-circle,
+/* 🎯 Filter Button Active */
+.filter-btn.active {
+  background: var(--primary-blue);
+  color: white !important;
+  box-shadow: 0 0 6px rgba(15, 92, 174, 0.4);
+}
+
+/* 🔴 UNDO BUTTON – Important, Keep Red */
+.undo-circle {
+  background: linear-gradient(to right, var(--undo-red), #a93128);
+  box-shadow: 0 0 14px rgba(231, 76, 60, 0.5);
+  transition: transform 0.2s ease;
+}
+.undo-circle:hover {
+  transform: scale(1.1);
+}
+.undo-circle:active {
+  transform: scale(0.95);
+}
+
+/* ❌ Delete Buttons */
 .transaction-delete-btn,
 .mini-delete-btn {
-    background: linear-gradient(to right, #e74c3c, #b3392b);
-    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+  background: linear-gradient(to right, var(--undo-red), #b32a2a);
+  box-shadow: 0 2px 10px rgba(231, 76, 60, 0.3);
 }
 
-/* ✨ Scrollbar */
-::-webkit-scrollbar {
-    width: 6px;
+/* 💹 Over-Budget Transaction */
+.transaction.over-budget {
+  background: rgba(15, 92, 174, 0.08);
+  border-left: 4px solid var(--primary-blue);
 }
-::-webkit-scrollbar-thumb {
-    background: #3a3a3a;
-    border-radius: 10px;
+.transaction-amount.over-budget {
+  color: var(--primary-blue);
 }
-::-webkit-scrollbar-track {
-    background: transparent;
+
+/* 📱 Mobile Tap Effect - All Interactive Elements */
+.btn,
+.floating-action-btn,
+.transaction,
+.filter-btn,
+.undo-circle {
+  will-change: transform;
+  touch-action: manipulation;
+  transition: all 0.2s ease;
 }
+
+
 
 
 
