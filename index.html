@@ -1253,33 +1253,38 @@ body {
   
       <div class="input-group">
         <input type="text" id="listItemInput" placeholder="Enter item to buy">
+        <select id="quantityUnit" class="btn" style="margin-top: 10px;">
+            <option value="500g">500 g</option>
+            <option value="250g">250 g</option>
+            <option value="1kg">1 Kg</option>
+            <option value="1.5kg">1.5 Kg</option>
+            <option value="2kg">2 Kg</option>
+            <option value="2.5kg">2.5 Kg</option>
+            <option value="3kg">3kg</option>
+            <option value="3.5kg">3.5kg</option>
+            <option value="4kg">4kg</option>
+            <option value="4.5kg">4.5kg</option>
+            <option value="5kg">5kg</option>
+            <option value="10kg">10kg</option>
+            <option value="20kg">20kg</option>
+            <option value="2.5 kg">2.5 kg</option>
+            <option value="1L">1 Liter</option>
+            <option value="2L">2 Liters</option>
+            <option value="1pcs">1 Piece</option>
+            <option value="2pcs">2 Pieces</option>
+            <option value="5pcs">5 Pieces</option>
+            <option value="12pcs">12 Pieces</option>
+            
+           
+            <option value="custom">Custom</option>
+          </select>
+          
   
-        <!-- Changed: input + datalist instead of <select> -->
-        <input type="text" id="quantityUnit" list="quantityOptions" placeholder="Enter or choose quantity" class="btn" style="margin-top: 10px;">
-        <datalist id="quantityOptions">
-          <option value="500g">
-          <option value="250g">
-          <option value="1kg">
-          <option value="1.5kg">
-          <option value="2kg">
-          <option value="2.5kg">
-          <option value="3kg">
-          <option value="3.5kg">
-          <option value="4kg">
-          <option value="4.5kg">
-          <option value="5kg">
-          <option value="10kg">
-          <option value="20kg">    
-         <option value="1L">
-          <option value="2L">
-          <option value="1pcs">
-          <option value="2pcs">
-          <option value="5pcs">
-          <option value="12pcs">
-        </datalist>
-  
+</select>
+
         <button class="btn success" onclick="addListItem()">➕ Add</button>
         <button class="btn danger" onclick="clearBuyingList()" style="margin-top: 10px;">🧹 Clear List</button>
+
       </div>
   
       <ul id="buyingList" style="margin-top: 15px; color: white; list-style: none; padding-left: 0;"></ul>
