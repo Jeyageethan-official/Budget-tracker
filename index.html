@@ -2319,23 +2319,22 @@ function clearAllData() {
 
         // Export data
         function exportData() {
-            const data = {
-                transactions: transactions,
-                dailyBudget: dailyBudget,
-                exportDate: new Date().toISOString()
-            };
-
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `budget_data_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
-        }
+    // Export ALL days/months from first day to now
+    const fullData = JSON.parse(localStorage.getItem('allBudgetData') || '{}');
+    if (!fullData || Object.keys(fullData).length === 0) {
+        alert('No data available to backup!');
+        return;
+    }
+    const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Full_Budget_Backup_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
         // Show statistics
         function showStatistics() {
@@ -2400,23 +2399,85 @@ function clearAllData() {
             }
         }
         // Restore data
-function importData() {
+        function importData() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
 
-    input.onchange = function (event) {
-        const file = event.target.files[0];
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = (ev) => {
             try {
-                const data = JSON.parse(e.target.result);
-                transactions = data.transactions || [];
-                dailyBudget = data.dailyBudget || 0;
+                const raw = JSON.parse(ev.target.result);
+
+                const isDateKey = (k) => /^\d{4}-\d{2}-\d{2}$/.test(k);
+                let restored;
+
+                // Accept any of these formats:
+                // 1) { "YYYY-MM-DD": { transactions:[], dailyBudget:0 }, ... }
+                // 2) { allBudgetData: { ...same as #1... } }
+                // 3) { transactions:[], dailyBudget:0 }  -> put into today's date
+                if (raw && typeof raw === 'object' && raw.allBudgetData && typeof raw.allBudgetData === 'object') {
+                    restored = raw.allBudgetData;
+                } else if (raw && typeof raw === 'object' && Object.keys(raw).some(isDateKey)) {
+                    restored = raw;
+                } else if (raw && typeof raw === 'object' && ('transactions' in raw || 'dailyBudget' in raw)) {
+                    const today = new Date().toISOString().split('T')[0];
+                    restored = JSON.parse(localStorage.getItem('allBudgetData') || '{}');
+                    restored[today] = {
+                        transactions: Array.isArray(raw.transactions) ? raw.transactions : [],
+                        dailyBudget: Number(raw.dailyBudget) || 0
+                    };
+                } else {
+                    alert('Invalid backup file format!');
+                    return;
+                }
+
+                // Save all data
+                localStorage.setItem('allBudgetData', JSON.stringify(restored));
+                allData = restored;
+
+                // Pick the latest available date (or today)
+                const dates = Object.keys(restored).filter(isDateKey).sort();
+                const loadDate = dates.length ? dates[dates.length - 1] : new Date().toISOString().split('T')[0];
+
+                // Update in-memory state
+                selectedDate = loadDate;
+                transactions = (allData[loadDate] && Array.isArray(allData[loadDate].transactions)) ? allData[loadDate].transactions : [];
+                dailyBudget = (allData[loadDate] && Number(allData[loadDate].dailyBudget)) ? Number(allData[loadDate].dailyBudget) : 0;
+
+                // Reset extras and persist app state for compatibility
+                checkedOverBudgetIds = [];
+                localStorage.setItem('checkedOverBudgetIds', JSON.stringify(checkedOverBudgetIds));
+
+                const totalIncome  = transactions.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount || 0), 0);
+                const totalExpense = transactions.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount || 0), 0);
+                const balance = totalIncome - totalExpense;
+                const selectedOnlyExpenses = transactions
+                    .filter(t => t.type === 'expense' && t.date === selectedDate)
+                    .reduce((a, t) => a + Number(t.amount || 0), 0);
+                const remaining = (Number(dailyBudget) || 0) - selectedOnlyExpenses + (typeof adjustOverBudget === 'number' ? adjustOverBudget : 0);
+
+                const appState = {
+                    transactions,
+                    dailyBudget,
+                    totalIncome,
+                    totalExpense,
+                    balance,
+                    remaining,
+                    checkedOverBudgetIds,
+                    adjustOverBudget: (typeof adjustOverBudget === 'number' ? adjustOverBudget : 0),
+                    selectedDate
+                };
+                localStorage.setItem('budgetAppState', JSON.stringify(appState));
+
                 updateDisplay();
-                alert('Backup restored successfully!');
-            } catch (error) {
-                alert('Failed to restore backup. Invalid file format.');
+                alert('Full backup restored successfully!');
+            } catch (err) {
+                alert('Failed to restore backup: ' + err.message);
             }
         };
         reader.readAsText(file);
